@@ -1,4 +1,4 @@
-# verificationfrontend
+# Frontend (built w/ VueJS)
 
 ## Project setup
 ```
