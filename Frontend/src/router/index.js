@@ -6,8 +6,9 @@ Vue.use(VueRouter)
 
 const routes = [
   {
-    path: '/',
+    path: '/:code?:state?',
     name: 'Home',
+    props: true,
     component: Home
   },
   {
@@ -26,6 +27,7 @@ const routes = [
 ]
 
 const router = new VueRouter({
+  mode: "history",
   routes
 })
 
