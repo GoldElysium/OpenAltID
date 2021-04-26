@@ -14,7 +14,7 @@ uri_router = APIRouter(
 
 
 @auth_router.get('/uri/discord', response_model=Auth_URI)
-async def return_discord_callback(redirect_uri: str):
+async def return_discord_callback():
     client_id = constants.DISCORD_CLIENT_ID
     scopes = "identify connections guilds"
     state = secrets.token_urlsafe(16)

@@ -1,15 +1,20 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">
-        Home
-      </router-link> |
-      <router-link to="/about">
-        About
-      </router-link>
-    </div>
-    <router-view />
-  </div>
+  <v-app dark>
+    <v-app-bar app>
+      <v-app-bar-title>
+        OpenAD
+      </v-app-bar-title>
+      <v-menu>
+
+      </v-menu>
+    </v-app-bar>
+    <v-main>
+      <router-view></router-view>
+    </v-main>
+    <v-footer>
+      <h5>Created by Irony4D</h5>
+    </v-footer>
+  </v-app>
 </template>
 
 <style lang="scss">
@@ -34,3 +39,9 @@
   }
 }
 </style>
+<script>
+//import Home from "@/views/Home";
+export default {
+  //components: {Home}
+}
+</script>

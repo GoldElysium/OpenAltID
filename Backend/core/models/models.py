@@ -32,11 +32,18 @@ class Auth_URI(BaseModel):
     state: str = Field(example="randomly_generated")
 
 
-class User(BaseModel):
-    id: str = Field(example="1234567890")
-
-
 class DiscordAccessInfo(BaseModel):
     access_code: str = Field(example="NhhvTDYsFcdgNLnnLijcl7Ku7bEEeee&state=15773059ghq9183habn")
     redirect_uri: str = Field(example="api.mysite.com/auth/uri/discord")
     state: str = Field(example="2RVdnEKjpz")
+
+
+class UserDB(BaseModel):
+    id: str = Field(example="1234567890")
+    access_token: str = Field(example="6qrZcUqja7812RVdnEKjpzOL4CvHBFG")
+    expires_on: int = Field(example="604800")
+    refresh_token: str = Field(example="D43f5y0ahjqew82jZ4NViEr2YafMKhue")
+
+class UserJWT(BaseModel):
+    id: str = Field(example="1234567890")
+    expires_in: int = Field(example="604800")
