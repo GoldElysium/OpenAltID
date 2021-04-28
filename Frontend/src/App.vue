@@ -1,20 +1,43 @@
 <template>
-  <v-app dark>
-    <v-app-bar app>
-      <v-app-bar-title>
-        OpenAD
-      </v-app-bar-title>
-      <v-menu>
+    <v-app dark>
+        <v-app-bar app>
+            <v-app-bar-title>
+                OpenAD
+            </v-app-bar-title>
+            <v-spacer></v-spacer>
+            <v-toolbar-items class="align-center">
+                <DiscordLoginButton></DiscordLoginButton>
+                <div class="pa-2" v-if="!this.$store.getters.getLoggedIn">
+                    <v-btn
+                        disabled
+                        elevation="2"
+                        large
+                        raised
 
-      </v-menu>
-    </v-app-bar>
-    <v-main>
-      <router-view></router-view>
-    </v-main>
-    <v-footer>
-      <h5>Created by Irony4D</h5>
-    </v-footer>
-  </v-app>
+                        to="Dashboard"
+                    >
+                        Dashboard
+                    </v-btn>
+                </div>
+                <div class="pa-2" v-else>
+                    <v-btn
+                            elevation="2"
+                            large
+                            raised
+                            to="Dashboard"
+                    >
+                        Dashboard
+                    </v-btn>
+                </div>
+            </v-toolbar-items>
+        </v-app-bar>
+        <v-main>
+            <router-view></router-view>
+        </v-main>
+        <v-footer>
+            <h5>Created by Irony4D</h5>
+        </v-footer>
+    </v-app>
 </template>
 
 <style lang="scss">
@@ -41,7 +64,9 @@
 </style>
 <script>
 //import Home from "@/views/Home";
+import DiscordLoginButton from "@/components/DiscordLoginButton";
+
 export default {
-  //components: {Home}
+    components: {DiscordLoginButton},
 }
 </script>

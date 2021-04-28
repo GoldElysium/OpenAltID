@@ -13,8 +13,11 @@ export default {
   components: {
     DiscordLoginButton
   },
-  mounted() {
-    console.log(this.$route.query)
+  beforeCreate() {
+      console.log("Logged in: "+this.$store.getters.getLoggedIn)
+    if (this.$store.getters.getLoggedIn) {
+        this.$router.push("dashboard").then()
+    }
   }
 }
 </script>

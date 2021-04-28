@@ -1,6 +1,10 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import Home from '@/views/Home.vue'
+import Verify from "@/views/Verify";
+import Dashboard from "@/views/Dashboard";
+import DiscordRedirect from "@/views/DiscordRedirect";
+import store from "@/store/index.js"
 
 Vue.use(VueRouter)
 
@@ -12,18 +16,54 @@ const routes = [
     component: Home
   },
   {
-    path: '/verify/:identifier?',
+    path: '/',
+    name: 'root',
+    props: true,
+    component: Home
+  },
+  {
+    path: '/verify:identifier?',
     name: 'Verify',
+    props: true,
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/Verify.vue')
+    component: Verify
+  },
+  {
+    path: '/discordredirect:identifier?',
+    name: 'DiscordRedirect',
+    props: true,
+    component: DiscordRedirect
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    meta: {
+      requiresAuth: true
+    },
+    component: Dashboard
   }
 ]
 
 const router = new VueRouter({
   mode: "history",
   routes
+})
+router.beforeEach((to, from, next) => {
+  let logged_in = store.dispatch('verifyLogin')
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // this route requires auth, check if logged in
+    // if not, redirect to login page.
+
+    if (!logged_in) {
+      next({ name: 'Verify' })
+    } else {
+      next() // go to wherever I'm going
+    }
+  } else {
+    next() // does not require auth, make sure to always call next()!
+  }
 })
 
 export default router
