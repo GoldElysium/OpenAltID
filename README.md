@@ -4,4 +4,5 @@
 
 ___
 
-## How to run the system: TBD
+## How to run the system:
+### TBD but will likely be run with docker-compose.
