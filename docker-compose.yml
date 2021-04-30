@@ -3,17 +3,34 @@ version: "3.7"
 services:
   redis:
     container_name: "Redis"
-    image: redis:6.2
+    image: redis:6.2-alpine
+    restart: unless-stopped
     environment:
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
       - ALLOW_EMPTY_PASSWORD=yes
       - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
     ports:
-      - "6379:6379"
+      - 6379:6379
     volumes:
       - 'redis_data:/bitnami/redis/data'
+    
+  mongo:
+    container_name: "MongoDB"
+    image: mongo:4.4.5-bionic
+    restart: unless-stopped
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
 
-
+  rabbitmq:
+    image: rabbitmq:3.8-rc-alpine
+    container_name: 'RabbitMQ'
+    restart: unless-stopped
+    ports:
+      - 5672:5672
+      - 15672:15672
 
 volumes:
   redis_data:

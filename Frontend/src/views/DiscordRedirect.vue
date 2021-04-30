@@ -7,8 +7,9 @@ export default {
     name: "DiscordRedirect",
     mounted() {
         console.log("Redirect Page: ")
-        console.log(this.$route.query.code)
+        console.log(this.$route)
         console.log(this.$store.getters.getLoggedIn)
+
         if (this.$route.query.code && !this.$store.getters.getLoggedIn) {
             this.$store.dispatch('login', this.$route.query.code).then((success) => {
                 console.log("Success from the dispatch: " + success)

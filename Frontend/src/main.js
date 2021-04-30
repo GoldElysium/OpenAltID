@@ -12,8 +12,6 @@ Vue.use(require('vue-cookies'))
 library.add(faUserSecret)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 
-Vue.config.productionTip = false
-
 new Vue({
   vuetify,
   store,

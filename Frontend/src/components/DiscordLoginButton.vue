@@ -27,17 +27,17 @@ export default {
     methods: {
         login: async function () {
             if (!this.$store.getters.getLoggedIn) {
-                let discord_redirect = await fetch('http://127.0.0.1:5000' + "/api/auth/uri/discord", {
+                let discord_redirect = await fetch(this.$store.state.BACKEND_API_BASEURI + "/api/auth/uri/discord", {
                     credentials: "include"
                 })
                 let res_json = await discord_redirect.json()
                 // Go to the redirect location
-                window.location = res_json.url + encodeURIComponent("http://127.0.0.1:8000/discordredirect")
+                window.location = res_json.url
             }
         },
         logout: async function () {
 
-            let status = await fetch('http://127.0.0.1:5000' + "/api/auth/logout/discord", {
+            let status = await fetch(this.$store.state.BACKEND_API_BASEURI + "/api/auth/logout/discord", {
                 credentials: "include"
             })
 
