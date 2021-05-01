@@ -4,23 +4,16 @@ from datetime import timedelta
 
 import redis
 import requests
-from authlib.integrations.requests_client import OAuth1Session, OAuth2Session
-from authlib.integrations.flask_client import OAuth, FlaskRemoteApp
-from loginpass import Twitch, Twitter, Reddit, GitHub
+from authlib.integrations.requests_client import OAuth2Session, OAuth1Session
 from celery import Celery
-from flask import Flask, jsonify, request, session, Response, redirect
+from flask import Flask, jsonify, request, session, Response
 from flask_cors import CORS
 from flask_session import Session
 from loguru import logger
 from pydantic.main import BaseModel
 from pymongo import MongoClient
 
-from flask_sslify import SSLify
-
-
 SESSION_TYPE = 'redis'
-
-
 
 debug = True
 app = Flask(__name__)
@@ -30,31 +23,28 @@ app.config["SESSION_TYPE"] = 'redis'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=20)
 CORS(app)
 Session(app)
-sslify = SSLify(app)
 
 celery_client = Celery('hello', broker='amqp://guest@localhost//')
 mongo_client = MongoClient()
 
 r = redis.Redis(host="127.0.0.1", port=6379)
 
-oauth = OAuth(app, cache=r)
 
-for backend in [Twitch, Twitter, Reddit, GitHub]:
-    class RemoteApp(backend, FlaskRemoteApp):
-        OAUTH_APP_CONFIG = backend.OAUTH_CONFIG
-    oauth.register(backend.NAME, client_cls=RemoteApp)
+class UserConn(BaseModel):
+    account_type: str
+    account_age: timedelta
+    account_sub: str
+
+
+class User(BaseModel):
+    discord_id: int
+    verified: False
+    connections: [UserConn]
+
 
 r.set("hello", "there")
 r.expire("hello", 1800)
 print(r.get("hello"))
-
-
-def handle_authorize(remote, token, user_info):
-    if token:
-        pass
-    if user_info:
-        pass
-        return ""
 
 
 @celery_client.task
@@ -76,11 +66,6 @@ def return_logged_status():
         return {"success": False}
 
 
-@app.route('/redirect', methods=['GET'])
-def redirect_vue():
-    return redirect("http://www.google.com", )
-
-
 class user_model(BaseModel):
     user_id: int
     username: str
@@ -93,12 +78,9 @@ def return_discord():
     logger.debug("Request: {}".format(request))
     logger.debug("Session: {}".format(session.items()))
 
-    discord_oauth_client = OAuth2Session(
-        app.config.get("DISCORD_CLIENT_ID"),
-        app.config.get("DISCORD_CLIENT_SECRET"),
-        scope="identify connections guilds",
-        redirect_uri="http://127.0.0.1:8000/discordredirect"
-    )
+    discord_oauth_client = OAuth2Session(app.config.get("DISCORD_CLIENT_ID"), app.config.get("DISCORD_CLIENT_SECRET"),
+                                         scope="identify connections guilds",
+                                         redirect_uri="http://127.0.0.1:8000/discordredirect")
 
     try:
         # Get the access token
@@ -177,12 +159,9 @@ def return_discord_callback():
     logger.debug("Request: {}".format(request))
     logger.debug("Session: {}".format(session.items()))
 
-    discord_oauth_client = OAuth2Session(
-        app.config.get("DISCORD_CLIENT_ID"),
-        app.config.get("DISCORD_CLIENT_SECRET"),
-        scope="identify connections guilds",
-        redirect_uri="http://127.0.0.1:8000/discordredirect"
-    )
+    discord_oauth_client = OAuth2Session(app.config.get("DISCORD_CLIENT_ID"), app.config.get("DISCORD_CLIENT_SECRET"),
+                                         scope="identify connections guilds",
+                                         redirect_uri="http://127.0.0.1:8000/discordredirect")
 
     uri_state = discord_oauth_client.create_authorization_url("https://discord.com/api/oauth2/authorize")
     print(uri_state)
@@ -195,37 +174,31 @@ def return_twitter_callback():
     logger.debug("Request: {}".format(request))
     logger.debug("Session: {}".format(session.items()))
 
-    twitter_oauth_client = OAuth1Session(
-        app.config.get("TWITTER_CLIENT_ID"),
-        app.config.get("TWITTER_CLIENT_SECRET"),
-        redirect_uri="http://127.0.0.1:8000/twitterredirect"
-    )
+    twitter_oauth_client = OAuth1Session(app.config.get("TWITTER_CLIENT_ID"), app.config.get("TWITTER_CLIENT_SECRET"),
+                                         redirect_uri="http://127.0.0.1:8000/twitterredirect")
 
-    request_token = twitter_oauth_client.fetch_request_token('https://api.twitter.com/oauth/request_token')
-    session['twitter_request_token'] = request_token
+    request_token = twitter_oauth_client.fetch_access_token('https://api.twitter.com/oauth/request_token')
+    session['twitter_request_token'] = request_token  # Just in case its needed later
 
-    print(request_token)
     uri_request_token_twitter = twitter_oauth_client.create_authorization_url(
-        'https://api.twitter.com/oauth/authenticate')
+        'https://api.twitter.com/oauth/authenticate',
+        request_token)
 
-    return {'url': uri_request_token_twitter}
+    return {'url': uri_request_token_twitter[0]}
 
 
-@app.route('/api/auth/login/twitter', methods=['POST'])
-def login_twitter():
+@app.route('/api/auth/login/twitter', methods=['PUT'])
+def login_twitter(url: str):
     logger.debug("Request: {}".format(request))
     logger.debug("Session: {}".format(session.items()))
 
-    url = request.json['url']
-
     try:
-        twitter_oauth_client = OAuth1Session(
-            app.config.get("TWITTER_CLIENT_ID"),
-            app.config.get("TWITTER_CLIENT_SECRET"),
-            redirect_uri="http://127.0.0.1:8000/twitterredirect"
-        )
+        twitter_oauth_client = OAuth1Session(app.config.get("TWITTER_CLIENT_ID"),
+                                             app.config.get("TWITTER_CLIENT_SECRET"),
+                                             redirect_uri="http://127.0.0.1:8000/twitterredirect")
 
         twitter_oauth_client.parse_authorization_response(url)
+        token = twitter_oauth_client.fetch_request_token('https://api.twitter.com/oauth/access_token')
 
         token = twitter_oauth_client.fetch_access_token('https://api.twitter.com/oauth/request_token')
         session['twitter_access_token'] = token  # No clue if this is needed but it gets popped during auth
@@ -235,51 +208,71 @@ def login_twitter():
         return {'success': True}
 
     except Exception as e:
-        print(e)
         return {'success': False}
 
 
 @app.route('/api/auth/uri/reddit', methods=['GET'])
-def return_reddit_callback():
+def return_reddit_callback(redirect_uri: str):
     logger.debug("Request: {}".format(request))
     logger.debug("Session: {}".format(session.items()))
-
-    api_base_url = 'https://oauth.reddit.com/api/v1/',
-    access_token_url = 'https://www.reddit.com/api/v1/access_token',
-    authorize_url = 'https://www.reddit.com/api/v1/authorize',
 
     reddit_oauth_client = OAuth2Session(
         app.config.get("REDDIT_CLIENT_ID"),
         app.config.get("REDDIT_CLIENT_SECRET"),
-        scope="identity",
+        scope="identify connections guilds",
         redirect_uri="http://127.0.0.1:8000/redditredirect"
     )
-    uri_state = reddit_oauth_client.create_authorization_url('https://www.reddit.com/api/v1/access_token')
 
+    uri_state = reddit_oauth_client.create_authorization_url('https://api.twitter.com/oauth/authenticate')
     session['reddit_state'] = uri_state[1]
 
     return {'url': uri_state[0]}
 
 
-@app.route('/api/auth/login/twitch', methods=['GET'])
-def login_twitch():
+@app.route('/api/auth/uri/twitch', methods=['GET'])
+def return_twitch_callback(redirect_uri: str):
     logger.debug("Request: {}".format(request))
     logger.debug("Session: {}".format(session.items()))
 
-    token = oauth.twitch.authorize_access_token()
+    twitch_oauth_client = OAuth2Session(
+        app.config.get("TWITCH_CLIENT_ID"),
+        app.config.get("TWITCH_CLIENT_SECRET"),
+        scope="user:read:email",
+        redirect_uri="http://127.0.0.1:8000/twitterredirect"
+    )
 
-    response = {"success": True}
-    logger.debug("Token: {}".format(token))
-    return response
+    twitch_oauth_client.register_compliance_hook('protected_request', fix_protected_request)
+
+    uri_state = twitch_oauth_client.create_authorization_url('https://api.twitter.com/oauth/authenticate')
+    print(uri_state)
+
+    session['twitch_state'] = uri_state[1]
+
+    return {'url': uri_state[0]}
+
+
+def fix_protected_request(url, headers, data):
+    headers["Client-ID"] = app.config.get('TWITCH_CLIENT_ID')
+    return url, headers, data
 
 
 @app.route('/api/auth/uri/twitch', methods=['GET'])
-def return_twitch_callback():
+def login_twitch(url: str):
     logger.debug("Request: {}".format(request))
     logger.debug("Session: {}".format(session.items()))
 
-    twitch = oauth.twitch
-    redirect_uri = 'https://127.0.0.1:5000/api/auth/login/twitch'
-    return twitch.authorize_redirect(redirect_uri)
+    twitch_oauth_client = OAuth2Session(
+        app.config.get("TWITCH_CLIENT_ID"),
+        app.config.get("TWITCH_CLIENT_SECRET"),
+        scope="user:read:email",
+        redirect_uri="http://127.0.0.1:8000/twitterredirect",
+        state=session['twitch_state']
+    )
 
+    twitch_oauth_client.register_compliance_hook('protected_request', fix_protected_request)
 
+    token = twitch_oauth_client.fetch_token('https://id.twitch.tv/oauth2/token', authorization_response=url)
+
+    session['twitch_token'] = token
+
+    return {'success': True}
