@@ -6,7 +6,7 @@ import redis
 import requests
 from authlib.integrations.requests_client import OAuth2Session, OAuth1Session
 from celery import Celery
-from flask import Flask, jsonify, request, session, Response
+from flask import Flask, jsonify, request, session, Response, redirect
 from flask_cors import CORS
 from flask_session import Session
 from loguru import logger
@@ -169,6 +169,10 @@ def return_discord_callback():
     return {'url': uri_state[0], 'state': uri_state[1]}
 
 
+########################################################################################################################
+# Twitter
+########################################################################################################################
+
 @app.route('/api/auth/uri/twitter', methods=['GET'])
 def return_twitter_callback():
     logger.debug("Request: {}".format(request))
@@ -211,6 +215,10 @@ def login_twitter(url: str):
         return {'success': False}
 
 
+########################################################################################################################
+# Reddit
+########################################################################################################################
+
 @app.route('/api/auth/uri/reddit', methods=['GET'])
 def return_reddit_callback(redirect_uri: str):
     logger.debug("Request: {}".format(request))
@@ -226,8 +234,12 @@ def return_reddit_callback(redirect_uri: str):
     uri_state = reddit_oauth_client.create_authorization_url('https://api.twitter.com/oauth/authenticate')
     session['reddit_state'] = uri_state[1]
 
-    return {'url': uri_state[0]}
+    return redirect(uri_state[0])
 
+
+########################################################################################################################
+# Twitch
+########################################################################################################################
 
 @app.route('/api/auth/uri/twitch', methods=['GET'])
 def return_twitch_callback(redirect_uri: str):
@@ -256,9 +268,9 @@ def fix_protected_request(url, headers, data):
     return url, headers, data
 
 
-@app.route('/api/auth/uri/twitch', methods=['GET'])
-def login_twitch(url: str):
-    logger.debug("Request: {}".format(request))
+@app.route('/api/auth/login/twitch', methods=['GET'])
+def login_twitch():
+    logger.debug("Request url: {}".format(request.args.get("url")))
     logger.debug("Session: {}".format(session.items()))
 
     twitch_oauth_client = OAuth2Session(
@@ -271,7 +283,8 @@ def login_twitch(url: str):
 
     twitch_oauth_client.register_compliance_hook('protected_request', fix_protected_request)
 
-    token = twitch_oauth_client.fetch_token('https://id.twitch.tv/oauth2/token', authorization_response=url)
+    token = twitch_oauth_client.fetch_token('https://id.twitch.tv/oauth2/token',
+                                            authorization_response=request.args.get("url"))
 
     session['twitch_token'] = token
 
