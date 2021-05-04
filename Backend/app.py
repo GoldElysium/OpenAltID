@@ -1,7 +1,9 @@
 import json
 import secrets
 from datetime import timedelta
+from urllib.parse import urlparse, parse_qs
 
+import dateutil.parser
 import redis
 import requests
 from authlib.integrations.requests_client import OAuth2Session, OAuth1Session
@@ -10,8 +12,22 @@ from flask import Flask, jsonify, request, session, Response, redirect
 from flask_cors import CORS
 from flask_session import Session
 from loguru import logger
+from mongoengine import *
 from pydantic.main import BaseModel
 from pymongo import MongoClient
+
+
+class UserConnection(EmbeddedDocument):
+    connection_type = StringField()
+    connection_id = StringField()
+    connection_creation = DateTimeField()
+
+
+class DBUser(Document):
+    user_discord_id = IntField(unique=True)
+    user_account_created = DateTimeField()
+    user_connections = ListField(UserConnection)
+
 
 SESSION_TYPE = 'redis'
 
@@ -28,19 +44,6 @@ celery_client = Celery('hello', broker='amqp://guest@localhost//')
 mongo_client = MongoClient()
 
 r = redis.Redis(host="127.0.0.1", port=6379)
-
-
-class UserConn(BaseModel):
-    account_type: str
-    account_age: timedelta
-    account_sub: str
-
-
-class User(BaseModel):
-    discord_id: int
-    verified: False
-    connections: [UserConn]
-
 
 r.set("hello", "there")
 r.expire("hello", 1800)
@@ -70,7 +73,6 @@ class user_model(BaseModel):
     user_id: int
     username: str
     access_token: str
-    refresh_token: str
 
 
 @app.route('/api/auth/login/discord', methods=['POST'])
@@ -93,14 +95,13 @@ def return_discord():
         logger.debug("Getting user data from /api/users/@me with headers: {}".format(headers))
         user_data = requests.post('http://discordapp.com/api/users/@me', headers=headers).json()
         logger.debug("User data received from Discord: {}".format(user_data))
-        user = user_model(user_id=int(user_data['id']), username=user_data['username'],
-                          access_token=token.get('access_token'))
-        logger.debug("Saving the user to session['user'] with data: {}".format(user))
-
+        session_user = user_model(user_id=int(user_data['id']), username=user_data['username'],
+                                  access_token=token.get('access_token'))
+        logger.debug("Saving the user to session['user'] with data: {}".format(session_user))
+        DBUser(user_discord_id=int(user_data['id']))
         # Put the Discord user info into session
-        session['user'] = user.json()
+        session['user'] = session_user.json()
         logger.debug("User now in session: {}".format(session['user']))
-
         # Respond with success
         response: Response = jsonify(success=True)
         logger.info("Returning the response: {}".format(response.response))
@@ -161,7 +162,7 @@ def return_discord_callback():
 
     discord_oauth_client = OAuth2Session(app.config.get("DISCORD_CLIENT_ID"), app.config.get("DISCORD_CLIENT_SECRET"),
                                          scope="identify connections guilds",
-                                         redirect_uri="http://127.0.0.1:8000/discordredirect")
+                                         redirect_uri="https://127.0.0.1:8000/discordredirect")
 
     uri_state = discord_oauth_client.create_authorization_url("https://discord.com/api/oauth2/authorize")
     print(uri_state)
@@ -242,7 +243,7 @@ def return_reddit_callback(redirect_uri: str):
 ########################################################################################################################
 
 @app.route('/api/auth/uri/twitch', methods=['GET'])
-def return_twitch_callback(redirect_uri: str):
+def return_twitch_callback():
     logger.debug("Request: {}".format(request))
     logger.debug("Session: {}".format(session.items()))
 
@@ -250,42 +251,50 @@ def return_twitch_callback(redirect_uri: str):
         app.config.get("TWITCH_CLIENT_ID"),
         app.config.get("TWITCH_CLIENT_SECRET"),
         scope="user:read:email",
-        redirect_uri="http://127.0.0.1:8000/twitterredirect"
+        redirect_uri="https://127.0.0.1:8000/twitchredirect"
     )
 
-    twitch_oauth_client.register_compliance_hook('protected_request', fix_protected_request)
-
-    uri_state = twitch_oauth_client.create_authorization_url('https://api.twitter.com/oauth/authenticate')
-    print(uri_state)
+    uri_state = twitch_oauth_client.create_authorization_url('https://id.twitch.tv/oauth2/authorize')
 
     session['twitch_state'] = uri_state[1]
+    logger.info("Redirect URL: ")
 
-    return {'url': uri_state[0]}
-
-
-def fix_protected_request(url, headers, data):
-    headers["Client-ID"] = app.config.get('TWITCH_CLIENT_ID')
-    return url, headers, data
+    return redirect(uri_state[0])
 
 
-@app.route('/api/auth/login/twitch', methods=['GET'])
+@app.route('/api/auth/login/twitch', methods=['POST'])
 def login_twitch():
-    logger.debug("Request url: {}".format(request.args.get("url")))
+    logger.debug("Request: {}".format(request.json))
     logger.debug("Session: {}".format(session.items()))
 
-    twitch_oauth_client = OAuth2Session(
-        app.config.get("TWITCH_CLIENT_ID"),
-        app.config.get("TWITCH_CLIENT_SECRET"),
-        scope="user:read:email",
-        redirect_uri="http://127.0.0.1:8000/twitterredirect",
-        state=session['twitch_state']
-    )
+    queries = parse_qs(urlparse(request.json["url"]).query)
+    replied_code = queries["code"]
+    state = queries["state"][0]
 
-    twitch_oauth_client.register_compliance_hook('protected_request', fix_protected_request)
+    session_state = str(session['twitch_state'][0])
 
-    token = twitch_oauth_client.fetch_token('https://id.twitch.tv/oauth2/token',
-                                            authorization_response=request.args.get("url"))
+    if state == session_state:
+        logger.warning(
+            "States do not match! Session state: {}  Received State: {}".format(session_state, state))
+        return {'success': False}
 
-    session['twitch_token'] = token
+    params = {
+        "client_id": app.config.get("TWITCH_CLIENT_ID"),
+        "client_secret": app.config.get("TWITCH_CLIENT_SECRET"),
+        "code": replied_code,
+        "grant_type": "authorization_code",
+        "redirect_uri": "https://127.0.0.1:8000/twitchredirect"
+    }
 
+    response = requests.post("https://id.twitch.tv/oauth2/token", params=params)
+    json_data = response.json()
+    headers = {"Authorization": "Bearer {}".format(json_data['access_token']), "Client-ID": app.config.get("TWITCH_CLIENT_ID")}
+    response = requests.get("https://api.twitch.tv/helix/users?", headers=headers).json()
+    print(response)
+    DBUser(user_discord_id=int(json.loads(session['user'])['user_id'])).user_connections.append(
+        UserConnection(connection_type='twitch', connection_id=response["data"][0]['id'],
+                       connection_creation=dateutil.parser.parse(response["data"][0]['created_at']))).save()
+    logger.warning(response)
+    session['twitch_token'] = json_data["access_token"]
+    print("Twitch access token: {}".format(session['twitch_token']))
     return {'success': True}
