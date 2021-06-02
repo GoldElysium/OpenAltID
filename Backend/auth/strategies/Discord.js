@@ -16,9 +16,9 @@ module.exports = function (passport) {
             let docu = new UserModel({
                 _id: parseInt(profile.id),
                 username: profile.username,
-                mfa_enabled: (profile.mfa_enabled === 'true'),
+                mfa_enabled: (String(profile.mfa_enabled).toLowerCase() === 'true'),
                 premium_type: parseInt(profile.premium_type),
-                verified: (profile.verified === 'true'),
+                verified: (String(profile.verified).toLowerCase() === 'true'),
                 accessToken: profile.accessToken,
                 avatar: profile.avatar,
                 connection: []

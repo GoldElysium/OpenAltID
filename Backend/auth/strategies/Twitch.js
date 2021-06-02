@@ -1,6 +1,7 @@
 let {UserModel} = require("../../database/models/UserModel");
 let {ConnectionModel} = require("../../database/models/UserModel");
 let TwitchStrategy = require('passport-twitch-new').Strategy;
+const axios = require("axios");
 
 module.exports = function (passport) {
     passport.use(new TwitchStrategy({
@@ -12,25 +13,6 @@ module.exports = function (passport) {
         function (accessToken, refreshToken, profile, done) {
             console.log("Access Token:" + accessToken)
             console.log("Refresh Token:" + refreshToken)
-
-            let docu = new UserModel({
-                connection: [new ConnectionModel({
-                    id: String,
-                    type: String,
-                    createdAt: Date
-                })]
-            });
-
-            UserModel.findOneAndUpdate(
-                {_id: parseInt(profile.id)},
-                docu,
-                {
-                    upsert: true,
-                    new: true,
-                    runValidators: true
-                }, function (err) {
-                    console.log(err)
-                })
             return done(null, profile);
         }
     ));

@@ -25,6 +25,7 @@
     "pug": "2.0.0-beta11"
   },
   "devDependencies": {
+    "axios": "^0.21.1",
     "cors": "^2.8.5",
     "dotenv": "^9.0.0",
     "express-session": "^1.17.1",

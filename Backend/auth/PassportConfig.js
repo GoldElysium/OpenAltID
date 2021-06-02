@@ -11,10 +11,7 @@ module.exports = function (passport) {
     passport.deserializeUser(function (id, done) {
         // receives the info from the session, is then responsible for getting the info from DB and returning the obj
         // get from DB
-
         UserModel.findById(id).then(docu => {
-            console.log("User deserialized: ")
-            console.log(docu)
             done(null, docu);
         }).catch(error => {
             console.log(error)

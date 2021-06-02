@@ -10,8 +10,6 @@ const mongoose = require('mongoose');
 
 const AuthRouter = require("./routes/auth/AuthRouter")
 
-const db = require("./database/Mongo")()
-
 // Create the express app
 const app = express();
 
@@ -70,4 +68,11 @@ app.get('/failure',
         res.json({"Failed": "could not login"})
     });
 
-app.listen(process.env['PORT'] || 8080);
+app.listen(process.env['PORT'] || 8080, function (err) {
+    if (err) {
+        console.log("Failed to start server: ", err)
+    } else {
+        const db = require("./database/Mongo")()
+        console.log("Listening on port: ", process.env['PORT'] || 8080)
+    }
+});
