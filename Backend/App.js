@@ -16,7 +16,7 @@ const app = express();
 app.use(morgan);
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cors({
-    origin: 'http://localhost:8000'
+    origin: ['*']
 }))
 app.use(session({
     secret: process.env['SECRET'],

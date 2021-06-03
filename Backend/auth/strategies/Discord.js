@@ -1,3 +1,4 @@
+const axios = require("axios");
 let {UserModel} = require("../../database/models/UserModel");
 let DiscordStrategy = require('passport-discord').Strategy;
 
@@ -6,12 +7,24 @@ module.exports = function (passport) {
             clientID: process.env.DISCORD_CLIENT_ID,
             clientSecret: process.env.DISCORD_CLIENT_SECRET,
             callbackURL: 'http://localhost:8080/auth/discord/callback',
-            scope: ['identify'],
+            scope: ['identify','connections'],
             state: false
         },
-        function (accessToken, refreshToken, profile, done) {
+        async function (accessToken, refreshToken, profile, done) {
             console.log("Access Token:" + accessToken)
             console.log("Refresh Token:" + refreshToken)
+
+            try {
+                let resp = await axios.get("https://discord.com/api/users/@me/connections", {
+                    headers: {
+                        "Authorization": "Bearer " + accessToken
+                    }
+                })
+                console.log(resp.data)
+            } catch (e) {
+                console.log(e.statusText)
+            }
+
 
             let docu = new UserModel({
                 _id: parseInt(profile.id),

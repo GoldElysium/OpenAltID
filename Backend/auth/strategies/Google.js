@@ -9,7 +9,7 @@ module.exports = function (passport) {
         function (accessToken, refreshToken, profile, done) {
             console.log("Access Token:" + accessToken)
             console.log("Refresh Token:" + refreshToken)
-            console.log("Profile" + profile.toString())
+            profile.bearerToken = accessToken
             return done(null, profile);
         }
     ));

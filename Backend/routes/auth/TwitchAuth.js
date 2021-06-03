@@ -2,7 +2,6 @@ let express = require('express');
 let router = express.Router();
 
 let passport = require("passport");
-const axios = require("axios");
 const {UserModel} = require("../../database/models/UserModel");
 
 router.get('/',

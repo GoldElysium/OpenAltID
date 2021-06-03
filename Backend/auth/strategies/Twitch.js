@@ -1,7 +1,4 @@
-let {UserModel} = require("../../database/models/UserModel");
-let {ConnectionModel} = require("../../database/models/UserModel");
 let TwitchStrategy = require('passport-twitch-new').Strategy;
-const axios = require("axios");
 
 module.exports = function (passport) {
     passport.use(new TwitchStrategy({
