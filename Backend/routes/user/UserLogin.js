@@ -3,9 +3,12 @@ const snoowrap = require('snoowrap')
 const { ClientCredentialsAuthProvider } = require('twitch-auth')
 const { ApiClient } = require('twitch')
 const Twitter = require('twitter')
+const { google } = require('googleapis')
+const { authenticate } = require('@google-cloud/local-auth')
 // Because the twitter timestamp is jank and so are the simpler ways of converting it
 const moment = require('moment')
 const axios = require('axios')
+const Path = require('path')
 
 let router = express.Router()
 
@@ -33,7 +36,22 @@ router.get('/logout', function (req, res) {
  * @see Map
  **/
 async function getAccountAges(accounts) {
+    console.log(accounts)
     // YouTube
+    let youtubePromise = new Promise((resolve) => {
+        resolve(null)
+    })
+    if (accounts.has('youtube')) {
+        const youtube = google.youtube({
+            version: 'v3',
+            auth: process.env.YOUTUBE_API_KEY,
+        })
+
+        youtubePromise = youtube.channels.list({
+            part: 'snippet',
+            id: accounts.get('youtube'),
+        })
+    }
 
     // Twitter
     let twitterPromise = new Promise((resolve) => {
@@ -53,7 +71,6 @@ async function getAccountAges(accounts) {
         resolve(null)
     })
     if (accounts.has('twitch')) {
-        let twitchUser
         let authProvider = new ClientCredentialsAuthProvider(
             process.env.TWITCH_CLIENT_ID,
             process.env.TWITCH_CLIENT_SECRET
@@ -76,30 +93,19 @@ async function getAccountAges(accounts) {
 
         redditPromise = redditWrapper.getUser('art_wins').fetch()
     }
-
+    let twitterUser, twitchUser, redditUser, youtubeUser
     // Wait for them all to finish!
-    ;[twitterUser, twitchUser, redditUser] = await Promise.all([
+    ;[twitterUser, twitchUser, redditUser, youtubeUser] = await Promise.all([
         twitterPromise,
         twitchPromise,
         redditPromise,
+        youtubePromise,
     ])
+
+    console.log(twitterUser)
     console.log({
-        'Twitter Username': twitterUser.screen_name,
-        'Twitter ID': twitterUser.id,
-        'Created at': moment(
-            twitterUser.created_at,
-            'ddd MMM DD HH:mm:ss Z YYYY'
-        ).toDate(),
-    })
-    console.log({
-        'Twitch Username': twitchUser.displayName,
-        'Twitch ID': twitchUser.id,
-        'Created at': twitchUser.creationDate,
-    })
-    console.log({
-        'Reddit Username': redditUser.name,
-        'Reddit Karma': redditUser.total_karma,
-        'Created at': new Date(redditUser.created * 1000),
+        'Youtube Username': youtubeUser.data.items[0].snippet.title,
+        'Created at': Date(youtubeUser.data.items[0].snippet.publishedAt),
     })
 }
 
@@ -128,7 +134,7 @@ router.get('/verify-accounts', async (req, res) => {
             ]
             resp.data.forEach((el) => {
                 if (
-                    supportedAccountTypes.indexOf(el.type) === -1 &&
+                    supportedAccountTypes.indexOf(el.type) !== -1 &&
                     el.verified === true
                 ) {
                     accounts.set(el.type, el.id)
@@ -137,7 +143,7 @@ router.get('/verify-accounts', async (req, res) => {
 
             await getAccountAges(accounts)
         } catch (e) {
-            console.log(e.statusText)
+            console.log(e)
         }
         res.send('Done.')
     }

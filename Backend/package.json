@@ -11,6 +11,7 @@
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
+    "googleapis": "^75.0.0",
     "grant": "^5.4.13",
     "http-errors": "~1.6.3",
     "moment": "^2.29.1",
@@ -28,6 +29,7 @@
     "twitter": "^1.7.1"
   },
   "devDependencies": {
+    "@google-cloud/local-auth": "^1.0.1",
     "axios": "^0.21.1",
     "cors": "^2.8.5",
     "dotenv": "^9.0.0",
