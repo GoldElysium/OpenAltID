@@ -43,7 +43,8 @@ module.exports = function (passport) {
                 {
                     upsert: true,
                     new: true,
-                    runValidators: true
+                    runValidators: true,
+                    useFindAndModify: true
                 }, function (err) {
                     console.log(err)
                 })
