@@ -13,6 +13,7 @@
     "express": "~4.16.1",
     "grant": "^5.4.13",
     "http-errors": "~1.6.3",
+    "moment": "^2.29.1",
     "mongoose": "^5.12.12",
     "morgan": "~1.9.1",
     "passport": "^0.4.1",

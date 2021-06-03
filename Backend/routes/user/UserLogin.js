@@ -1,8 +1,10 @@
 const express = require('express');
 const snoowrap = require('snoowrap')
-const {StaticAuthProvider} = require("twitch-auth");
+const {ClientCredentialsAuthProvider} = require("twitch-auth");
 const {ApiClient} = require('twitch')
 const Twitter = require('twitter');
+// Because the twitter timestamp is jank and so are the simpler ways of converting it
+const moment = require('moment')
 
 let router = express.Router();
 
@@ -20,41 +22,27 @@ router.get('/logout',
         });
     });
 
+
 async function getAccountAges(user) {
     // YouTube
 
 
     // Twitter
-
-    const Key = encodeURI(process.env.TWITTER_CLIENT_ID);
-    const Secret = encodeURI(process.env.TWITTER_CLIENT_SECRET);
-
-    //make the bearer token credential string -
-    //the rfc encoded key : the rfc encoded secret
-    const bearerTokenCredentials = `${Key}:${Secret}`;
-
-    //encode the credentials to base 64
-    const base64BearerTokenCredentials = Buffer.from(
-        bearerTokenCredentials
-    ).toString('base64');
-
     if (true) {
         var client = new Twitter({
-            consumer_key: '',
-            consumer_secret: '',
-
+            consumer_key: process.env.TWITTER_CLIENT_ID,
+            consumer_secret: process.env.TWITTER_CLIENT_SECRET,
+            bearer_token: process.env.TWITTER_CLIENT_BEARER
         });
     }
 
+    let twitterUser = client.get("users/show", {"user_id": "702234804"})
     // Twitch
     let twitchUser
     if (true) {
-        let clientId = process.env.TWITCH_CLIENT_ID;
-        let accessToken = process.env.TWITCH_CLIENT_SECRET;
-        let authProvider = new StaticAuthProvider(clientId, accessToken);
-        let twitchClient = new ApiClient({ authProvider });
-
-        twitchUser = twitchClient.getUserById('62730467')
+        let authProvider = new ClientCredentialsAuthProvider(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET);
+        let twitchClient = new ApiClient({authProvider});
+        twitchUser = twitchClient.helix.users.getUserById('62730467')
     }
 
     // Reddit
@@ -64,17 +52,35 @@ async function getAccountAges(user) {
             userAgent: 'OpenAD (v1)',
             clientId: 'ANqQWysAuwku_Q',
             clientSecret: 'fHqm8-jWr1WrfgHztahWxGJbHClrsA',
-            refreshToken: '23964635-XQSDIWQQxcPajV7wHCpnp-LfgYWtAw'
+            refreshToken: '23964635-WYpmYgqT-pSXz4ciA8yuDT7vaLnEug'
         });
 
-        redditUser = redditWrapper.getUser('art_wins');
+        redditUser = redditWrapper.getUser('art_wins').fetch();
     }
 
-    let replies = await Promise.all([twitchUser, redditUser])
-    console.log(replies)
+    // Wait for them all to finish!
+    [twitterUser, twitchUser, redditUser] = await Promise.all([twitterUser, twitchUser, redditUser])
+    console.log({
+        "Twitter Username": twitterUser.screen_name,
+        "Twitter ID": twitterUser.id,
+        "Created at": moment(twitterUser.created_at, 'ddd MMM DD HH:mm:ss Z YYYY').toDate()
+    })
+    console.log({
+        "Twitch Username": twitchUser.displayName,
+        "Twitch ID": twitchUser.id,
+        "Created at": twitchUser.creationDate
+    })
+    console.log({
+        "Reddit Username": redditUser.name,
+        "Reddit Karma": redditUser.total_karma,
+        "Created at": new Date(redditUser.created * 1000)
+    })
 }
 
 router.get('/verify-accounts',
     async (req, res) => {
-
+        await getAccountAges()
+        res.send("Done.")
     });
+
+module.exports = router

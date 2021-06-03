@@ -9,6 +9,7 @@ const cors = require('cors')
 const mongoose = require('mongoose');
 
 const AuthRouter = require("./routes/auth/AuthRouter")
+const UserRouter = require("./routes/user/UserLogin")
 
 // Create the express app
 const app = express();
@@ -35,6 +36,7 @@ require("./auth/PassportConfig")(passport)
 
 // Define routes.
 app.use('/auth', AuthRouter)
+app.use('/user', UserRouter)
 
 app.get('/',
     function (req, res) {
