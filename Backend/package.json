@@ -34,6 +34,7 @@
     "express-session": "^1.17.1",
     "passport-reddit": "^0.2.4",
     "passport-twitch-new": "^0.0.2",
+    "prettier": "2.3.0",
     "request": "^2.88.2",
     "snoowrap": "^1.23.0"
   }
