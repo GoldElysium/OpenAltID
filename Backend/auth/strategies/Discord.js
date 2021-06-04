@@ -16,19 +16,8 @@ module.exports = function (passport) {
                 console.log('Access Token:' + accessToken)
                 console.log('Refresh Token:' + refreshToken)
 
-                try {
-                    let resp = await axios.get(
-                        'https://discord.com/api/users/@me/connections',
-                        {
-                            headers: {
-                                Authorization: 'Bearer ' + accessToken,
-                            },
-                        }
-                    )
-                    console.log(resp.data)
-                } catch (e) {
-                    console.log(e.statusText)
-                }
+                console.log(profile)
+
 
                 let docu = new UserModel({
                     _id: parseInt(profile.id),
