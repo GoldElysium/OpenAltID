@@ -14,6 +14,7 @@ let userSchema = new mongoose.Schema({
     verified: Boolean,
     accessToken: String,
     avatar: String,
+    verified: Boolean,
     connections: [connectionSchema],
 })
 
