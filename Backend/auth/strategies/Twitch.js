@@ -1,4 +1,4 @@
-let TwitchStrategy = require('passport-twitch-new').Strategy
+let TwitchStrategy = require('passport-twitch-new').Strategy;
 
 module.exports = function (passport) {
     passport.use(
@@ -10,10 +10,10 @@ module.exports = function (passport) {
                 scope: 'user_read',
             },
             function (accessToken, refreshToken, profile, done) {
-                console.log('Access Token:' + accessToken)
-                console.log('Refresh Token:' + refreshToken)
-                return done(null, profile)
+                console.log('Access Token:' + accessToken);
+                console.log('Refresh Token:' + refreshToken);
+                return done(null, profile);
             }
         )
-    )
-}
+    );
+};

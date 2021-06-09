@@ -1,8 +1,8 @@
-let express = require('express')
-let router = express.Router()
+let express = require('express');
+let router = express.Router();
 
-let passport = require('passport')
-const axios = require('axios')
+let passport = require('passport');
+const axios = require('axios');
 
 router.get(
     '/',
@@ -13,9 +13,9 @@ router.get(
         ],
     }),
     function (req, res) {
-        console.log(req.session)
+        console.log(req.session);
     }
-)
+);
 
 router.get(
     '/callback',
@@ -34,17 +34,17 @@ router.get(
                     },
                 })
                 .then((resp) => {
-                    console.log(resp.data.items[0].snippet)
+                    console.log(resp.data.items[0].snippet);
                 })
                 .catch((error) => {
-                    console.log(error)
-                })
+                    console.log(error);
+                });
 
-            res.json({ Success: true })
+            res.json({ Success: true });
         } else {
-            res.send('No user in session!')
+            res.send('No user in session!');
         }
     }
-)
+);
 
-module.exports = router
+module.exports = router;

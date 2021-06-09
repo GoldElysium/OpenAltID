@@ -1,5 +1,5 @@
-let { UserModel } = require('../../database/models/UserModel')
-let RedditStrategy = require('passport-reddit').Strategy
+let { UserModel } = require('../../database/models/UserModel');
+let RedditStrategy = require('passport-reddit').Strategy;
 
 module.exports = function (passport) {
     passport.use(
@@ -10,12 +10,12 @@ module.exports = function (passport) {
                 callbackURL: 'http://localhost:8080/auth/reddit/callback',
             },
             function (accessToken, refreshToken, profile, done) {
-                console.log('Access Token:' + accessToken)
-                console.log('Refresh Token:' + refreshToken)
+                console.log('Access Token:' + accessToken);
+                console.log('Refresh Token:' + refreshToken);
 
                 let docu = new UserModel({
                     connection: [],
-                })
+                });
 
                 let user = UserModel.findOneAndUpdate(
                     { _id: parseInt(profile.id) },
@@ -26,11 +26,11 @@ module.exports = function (passport) {
                         runValidators: true,
                     },
                     function (err) {
-                        console.log(err)
+                        console.log(err);
                     }
-                )
-                return done(null, profile)
+                );
+                return done(null, profile);
             }
         )
-    )
-}
+    );
+};

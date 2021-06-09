@@ -1,10 +1,10 @@
-let mongoose = require('mongoose')
+let mongoose = require('mongoose');
 
 let connectionSchema = new mongoose.Schema({
     _id: String,
     type: String,
     createdAt: Date,
-})
+});
 
 let userSchema = new mongoose.Schema({
     _id: String, // the discord id
@@ -16,9 +16,9 @@ let userSchema = new mongoose.Schema({
     avatar: String,
     verified: Boolean,
     connections: [connectionSchema],
-})
+});
 
 module.exports = {
     UserModel: mongoose.model('User', userSchema),
     ConnectionModel: mongoose.model('Connection', connectionSchema),
-}
+};

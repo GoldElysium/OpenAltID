@@ -1,4 +1,4 @@
-const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
+const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
 module.exports = function (passport) {
     passport.use(
@@ -9,11 +9,11 @@ module.exports = function (passport) {
                 callbackURL: 'http://localhost:8080/auth/google/callback',
             },
             function (accessToken, refreshToken, profile, done) {
-                console.log('Access Token:' + accessToken)
-                console.log('Refresh Token:' + refreshToken)
-                profile.bearerToken = accessToken
-                return done(null, profile)
+                console.log('Access Token:' + accessToken);
+                console.log('Refresh Token:' + refreshToken);
+                profile.bearerToken = accessToken;
+                return done(null, profile);
             }
         )
-    )
-}
+    );
+};

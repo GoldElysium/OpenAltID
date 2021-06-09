@@ -1,10 +1,10 @@
-let TwitterStrategy = require('passport-twitter').Strategy
-let { ConnectionModel } = require('../../database/models/UserModel')
+let TwitterStrategy = require('passport-twitter').Strategy;
+let { ConnectionModel } = require('../../database/models/UserModel');
 
 module.exports = function (passport) {
-    let trustProxy = false
+    let trustProxy = false;
     if (process.env.DYNO) {
-        trustProxy = true
+        trustProxy = true;
     }
 
     passport.use(
@@ -16,8 +16,8 @@ module.exports = function (passport) {
                 proxy: trustProxy,
             },
             function (token, tokenSecret, profile, done) {
-                console.log('Token:' + token)
-                console.log('Token Secret:' + tokenSecret)
+                console.log('Token:' + token);
+                console.log('Token Secret:' + tokenSecret);
                 let user = User.findOneAndUpdate({
                     _id: profile.id,
                     username: String,
@@ -27,10 +27,10 @@ module.exports = function (passport) {
                     accessToken: String,
                     avatar: String,
                     connections: [ConnectionModel],
-                })
-                console.log('Profile' + profile.id)
-                return done(null, profile)
+                });
+                console.log('Profile' + profile.id);
+                return done(null, profile);
             }
         )
-    )
-}
+    );
+};
