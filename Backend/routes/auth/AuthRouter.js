@@ -1,8 +1,5 @@
 let express = require('express');
 let DiscordAuth = require('./DiscordAuth');
-let TwitchAuth = require('./TwitchAuth');
-let GoogleAuth = require('./GoogleAuth');
-let RedditAuth = require('./RedditAuth');
 
 let router = express.Router();
 

@@ -22,15 +22,4 @@ module.exports = function (passport) {
                 done(null, null);
             });
     });
-
-    // Twitter Passport
-    require('./strategies/Twitter')(passport);
-    // Google Passport
-    require('./strategies/Google')(passport);
-    // Reddit Passport
-    require('./strategies/Reddit')(passport);
-    // Discord Passport
-    require('./strategies/Discord')(passport);
-    // Twitch Passport
-    require('./strategies/Twitch')(passport);
 };
