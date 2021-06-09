@@ -51,16 +51,15 @@ const router = new VueRouter({
   routes
 })
 router.beforeEach((to, from, next) => {
-  store.dispatch('verifyLogin').then()
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-    // this route requires auth, check if logged in
-    // if not, redirect to login page.
 
-    if (!store.state.logged_in) {
-      next({ name: 'Verify' })
-    } else {
-      next() // go to wherever I'm going
-    }
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    store.dispatch('verifyLogin').then(loggedin => {
+      if (!loggedin) {
+        next({ name: 'Verify' })
+      } else {
+        next()
+      }
+    })
   } else {
     next() // does not require auth, make sure to always call next()!
   }

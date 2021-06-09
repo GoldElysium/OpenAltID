@@ -25,6 +25,7 @@
     "passport-twitch": "^1.0.3",
     "passport-twitter": "^1.0.4",
     "pug": "2.0.0-beta11",
+    "rascal": "^13.0.2",
     "twitch": "^4.5.5",
     "twitter": "^1.7.1"
   },
@@ -34,6 +35,7 @@
     "cors": "^2.8.5",
     "dotenv": "^9.0.0",
     "express-session": "^1.17.1",
+    "ioredis": "^4.27.4",
     "luxon": "^1.27.0",
     "passport-reddit": "^0.2.4",
     "passport-twitch-new": "^0.0.2",

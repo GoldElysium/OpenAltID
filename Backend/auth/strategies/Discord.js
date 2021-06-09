@@ -8,7 +8,7 @@ module.exports = function (passport) {
             {
                 clientID: process.env.DISCORD_CLIENT_ID,
                 clientSecret: process.env.DISCORD_CLIENT_SECRET,
-                callbackURL: 'http://localhost:8080/auth/discord/callback',
+                callbackURL: 'http://localhost:8000/discordredirect',
                 scope: ['identify', 'connections'],
                 state: false,
             },
@@ -16,23 +16,21 @@ module.exports = function (passport) {
                 console.log('Access Token:' + accessToken)
                 console.log('Refresh Token:' + refreshToken)
 
-                console.log(profile)
-
-
                 let docu = new UserModel({
-                    _id: parseInt(profile.id),
+                    _id: profile.id,
                     username: profile.username,
                     mfa_enabled:
                         String(profile.mfa_enabled).toLowerCase() === 'true',
                     premium_type: parseInt(profile.premium_type),
-                    verified: String(profile.verified).toLowerCase() === 'true',
+                    verifiedEmail: String(profile.verified).toLowerCase() === 'true',
+                    verified: false,
                     accessToken: profile.accessToken,
                     avatar: profile.avatar,
                     connection: [],
                 })
 
                 UserModel.findOneAndUpdate(
-                    { _id: parseInt(profile.id) },
+                    { _id: profile.id },
                     docu,
                     {
                         upsert: true,

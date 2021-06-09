@@ -12,47 +12,28 @@
                             </v-img>
                             <v-card-text><h1>Hello, {{ username }}!</h1></v-card-text>
                             <div v-if="verified">
-                                <v-card-text><strong>You are already verified!</strong></v-card-text>
+                                <v-card-title class="justify-center"><strong>You are verified!</strong></v-card-title>
                             </div>
                             <div v-else>
-                                <v-card-text :v-if=!verified><strong>You are not verified yet!</strong></v-card-text>
+                                <v-card-title class="justify-center"><strong>You are not verified yet!</strong></v-card-title>
                             </div>
+                        </v-card>
+                    </v-container>
+                    <v-container>
+                        <v-card class="ma-auto" outlined>
+                            <v-card-title class="justify-center">
+                                <h4>Click below to connect accounts</h4>
+                            </v-card-title>
+                            <v-list-item class="ma-auto pa-4" light>
+                                <v-btn class="ma-auto" large @click="verify">
+                                    VERIFY
+                                </v-btn>
+                            </v-list-item>
                         </v-card>
                     </v-container>
                 </v-col>
                 <v-col class="ma-auto" cols="auto">
-                    <v-container class="fill-height" >
-                        <v-card class="ma-auto" outlined  min-height="200" height=350>
-                            <v-card-title>
-                                <h4>Click below to connect accounts</h4>
-                            </v-card-title>
-                            <v-list-item light>
-                                <v-btn class="ma-auto" large>
-                                    Facebook
-                                </v-btn>
-                            </v-list-item>
-                            <v-list-item light>
-                                <v-btn class="ma-auto" large>
-                                    Twitter
-                                </v-btn>
-                            </v-list-item>
-                            <v-list-item light>
-                                <v-btn class="ma-auto" large >
-                                    Google
-                                </v-btn>
-                            </v-list-item>
-                            <v-list-item light>
-                                <v-btn class="ma-auto" large>
-                                    Reddit
-                                </v-btn>
-                            </v-list-item>
-                            <v-list-item light>
-                                <v-btn class="ma-auto" large>
-                                    Twitch
-                                </v-btn>
-                            </v-list-item>
-                        </v-card>
-                    </v-container>
+
                 </v-col>
             </v-row>
         </v-flex>
@@ -70,14 +51,29 @@ export default {
         }
     },
     beforeCreate() {
-        fetch('http://127.0.0.1:5000' + '/api/user/dash', {
+        fetch(this.$store.state.BACKEND_API_BASEURI + '/user/dashboard', {
             credentials: "include"
         }).then(response => response.json()).then(user => {
             console.log(user.avatar + " " + user.username + " " + user.verified)
+            this.username = user.username
             this.avatar = user.avatar
-            this.username = String(user.username)
+            if (user.username !== null) {
+                this.avatar = "https://cdn.discordapp.com/avatars/"+user.id+"/"+ user.avatar +" .png"
+            }
             this.verified = user.verified
         })
+    },
+    methods: {
+        verify: async function () {
+            if (this.$store.getters.getLoggedIn) {
+                let response = await fetch(this.$store.state.BACKEND_API_BASEURI + "/user/verify-accounts", {
+                    credentials: 'include'
+                })
+
+                this.verified = response.verified
+                this.$router.go()
+            }
+        },
     }
 }
 </script>

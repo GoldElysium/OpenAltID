@@ -18,7 +18,8 @@ app.use(morgan)
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(
     cors({
-        origin: ['*'],
+        origin: "http://localhost:8000",
+        credentials: true,
     })
 )
 app.use(
@@ -30,6 +31,7 @@ app.use(
             // This must be set to true for production, but it needs SSL, which can't be done from local.
             // See: https://stackoverflow.com/questions/11277779/passportjs-deserializeuser-never-called
             secure: false,
+            sameSite: "lax",
         },
     })
 )

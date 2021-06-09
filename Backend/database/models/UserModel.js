@@ -7,11 +7,11 @@ let connectionSchema = new mongoose.Schema({
 })
 
 let userSchema = new mongoose.Schema({
-    _id: Number, // the discord id
+    _id: String, // the discord id
     username: String,
     mfa_enabled: Boolean,
     premium_type: { type: Number, min: 0, max: 3 },
-    verified: Boolean,
+    verifiedEmail: Boolean,
     accessToken: String,
     avatar: String,
     verified: Boolean,
