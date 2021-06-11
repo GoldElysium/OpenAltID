@@ -27,17 +27,15 @@ export default {
     methods: {
         login: async function () {
             if (!this.$store.getters.getLoggedIn) {
-                let discord_redirect = await fetch(this.$store.state.BACKEND_API_BASEURI + "/api/auth/uri/discord", {
-                    credentials: "include"
-                })
-                let res_json = await discord_redirect.json()
-                // Go to the redirect location
-                window.location = res_json.url
+                /*await fetch(this.$store.state.BACKEND_API_BASEURI + "/login", {
+                    redirect: 'follow'
+                })*/
+                window.location.replace(this.$store.state.BACKEND_API_BASEURI + "/login")
             }
         },
         logout: async function () {
 
-            let status = await fetch(this.$store.state.BACKEND_API_BASEURI + "/api/auth/logout/discord", {
+            let status = await fetch(this.$store.state.BACKEND_API_BASEURI + "logout", {
                 credentials: "include"
             })
 

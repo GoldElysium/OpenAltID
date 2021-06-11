@@ -11,8 +11,10 @@
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
+    "googleapis": "^75.0.0",
     "grant": "^5.4.13",
     "http-errors": "~1.6.3",
+    "moment": "^2.29.1",
     "mongoose": "^5.12.12",
     "morgan": "~1.9.1",
     "passport": "^0.4.1",
@@ -22,15 +24,23 @@
     "passport-oauth": "^1.0.0",
     "passport-twitch": "^1.0.3",
     "passport-twitter": "^1.0.4",
-    "pug": "2.0.0-beta11"
+    "pug": "2.0.0-beta11",
+    "rascal": "^13.0.2",
+    "twitch": "^4.5.5",
+    "twitter": "^1.7.1"
   },
   "devDependencies": {
+    "@google-cloud/local-auth": "^1.0.1",
     "axios": "^0.21.1",
     "cors": "^2.8.5",
     "dotenv": "^9.0.0",
     "express-session": "^1.17.1",
+    "ioredis": "^4.27.4",
+    "luxon": "^1.27.0",
     "passport-reddit": "^0.2.4",
     "passport-twitch-new": "^0.0.2",
-    "request": "^2.88.2"
+    "prettier": "2.3.0",
+    "request": "^2.88.2",
+    "snoowrap": "^1.23.0"
   }
 }

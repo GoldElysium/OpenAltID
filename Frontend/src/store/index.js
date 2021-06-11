@@ -5,7 +5,7 @@ import Cookies from 'js-cookie'
 
 Vue.use(Vuex)
 
-let BACKEND_API_BASEURI = 'http://127.0.0.1:5000'
+let BACKEND_API_BASEURI = 'http://localhost:8080'
 
 export default new Vuex.Store({
     state: {
@@ -24,23 +24,19 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        login({commit}, access_code) {
+        login({commit}, urlQuery) {
             return new Promise((resolve) => {
                 let token
-                // Login and get the JWT
-                fetch('http://127.0.0.1:5000' + "/api/auth/login/discord", {
+                console.log(BACKEND_API_BASEURI + "/auth/discord/callback?code=" + urlQuery.code)
+                fetch(BACKEND_API_BASEURI + "/auth/discord/callback?code=" + urlQuery.code, {
                     method: "post",
                     credentials: "include",
-                    headers: {
-                        "Content-Type": "Application/json"
-                    },
                     body: JSON.stringify({
-                        "access_code": access_code,
-                        "redirect_uri": "http://127.0.0.1:8000/discordredirect"
+                        "urlQuery": urlQuery,
                     })
-                }).then((response) => response.json()).then(response_json => {
-                    token = response_json.success
-                    if (token === true) {
+                }).then((response) => {
+                    console.log(response)
+                    if (response.status === 200) {
                         commit('setToken', token, true)
                         resolve(true)
                     } else {
@@ -52,17 +48,25 @@ export default new Vuex.Store({
         },
         verifyLogin({commit}) {
             return new Promise(resolve => {
-                fetch('http://127.0.0.1:5000' + "/api/auth/is-logged-in", {
-                    credentials: "include"
-                }).then(response => response.json()).then(response_json => {
-                    if (response_json.success === true) {
-                        commit('setLoggedin', true)
-                        resolve(true)
-                    } else {
-                        commit('setLoggedin', false)
-                        resolve(false)
-                    }
-                })
+
+                if (!this.state.logged_in) {
+                    fetch(BACKEND_API_BASEURI + "/user/is-logged-in", {
+                        credentials: "include"
+                    }).then(response => response.json()).then(response_json => {
+                        console.log(response_json)
+                        if (response_json.logged_in === true) {
+                            commit('setLoggedin', true)
+                            resolve(true)
+                        } else {
+                            commit('setLoggedin', false)
+                            resolve(false)
+                        }
+                    }).catch(error => {
+                        console.log(error)
+                    })
+                } else {
+                    resolve(true)
+                }
             })
         }
     },
