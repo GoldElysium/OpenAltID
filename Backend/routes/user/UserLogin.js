@@ -4,7 +4,6 @@ const { UserModel } = require('../../database/models/UserModel');
 const { verifyUser } = require('./UserFunctions');
 const { getAccountAges } = require('./UserFunctions');
 const { getUserConnectionIDs } = require('./UserFunctions');
-const { rabbitBroker } = require('../../database/Redis');
 
 let router = express.Router();
 
@@ -24,7 +23,6 @@ router.get('/dashboard', function (req, res) {
     if (!req.user) {
         return res.status(401).send({ message: 'Not logged in' });
     } else {
-        console.log(req.user);
         return res.send({
             avatar: req.user.avatar,
             username: req.user.username,
@@ -36,10 +34,8 @@ router.get('/dashboard', function (req, res) {
 
 router.get('/is-logged-in', function (req, res) {
     if (req.user) {
-        console.log('The user is logged in.');
         return res.json({ logged_in: true });
     } else {
-        console.log('The user is not logged in!');
         return res.status(401).send({ message: 'Not logged in' });
     }
 });

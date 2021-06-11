@@ -18,7 +18,7 @@ app.use(morgan);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
     cors({
-        origin: 'http://localhost:8000',
+        origin: ['http://localhost:8000','https://verify.holoen.fans'],
         credentials: true,
     })
 );
@@ -82,3 +82,5 @@ app.listen(process.env['PORT'] || 8080, function (err) {
         console.log('Listening on port: ', process.env['PORT'] || 8080);
     }
 });
+
+module.exports = app;

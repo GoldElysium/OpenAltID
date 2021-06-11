@@ -13,9 +13,6 @@ module.exports = function (passport) {
                 state: false,
             },
             async function (accessToken, refreshToken, profile, done) {
-                console.log('Access Token:' + accessToken);
-                console.log('Refresh Token:' + refreshToken);
-
                 let docu = new UserModel({
                     _id: profile.id,
                     username: profile.username,
