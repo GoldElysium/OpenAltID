@@ -4,7 +4,6 @@ const { ApiClient } = require('twitch');
 const TwitterWrapper = require('twitter');
 const { google } = require('googleapis');
 const moment = require('moment');
-const { DateTime, Interval } = require('luxon');
 const axios = require('axios');
 
 /**
@@ -203,8 +202,5 @@ module.exports.verifyUser = async function verifyUser(
     if (user.premium_type) {
         score += user.premium_type * 11;
     }
-
-    console.log(score);
-
     return score >= minscore;
 };
