@@ -30,7 +30,7 @@ export default {
                 /*await fetch(this.$store.state.BACKEND_API_BASEURI + "/login", {
                     redirect: 'follow'
                 })*/
-                window.location.replace(this.$store.state.BACKEND_API_BASEURI + "/login")
+                window.location.replace(this.$store.state.BACKEND_API_BASEURI + "/user/login")
             }
         },
         logout: async function () {

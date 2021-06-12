@@ -7,14 +7,6 @@ ___
 ## How to run the system:
 ### TBD but will likely be run with docker-compose.
 
-___
-
-## Portions of this project use the Authlib and Loginpass libraries
-
-Authlib, Loginpass:
-Copyright (c) 2017, Hsiaoming Yang
-All rights reserved.
-
 
 
 
