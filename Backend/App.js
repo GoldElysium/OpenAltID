@@ -39,6 +39,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 require('./auth/PassportConfig')(passport);
+require('./auth/strategies/Discord')(passport);
 
 // Define routes.
 app.use('/auth', AuthRouter);
