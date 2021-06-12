@@ -8,5 +8,5 @@ ___
 The frontend of the site is deployed as a static site, this project is set up to use Netfily and is the recommended host.
 
 The Backend of the site is designed to be deployed as a docker image on a seperate server with a webserver acting as a reverse proxy in front (Recommended to use NGINX).
-
+The backend needs sometype of mongodb to work, either self hosted or on MongoDB Atlas.
 The bot will also be run as a docker container once it is made.
