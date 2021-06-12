@@ -45,33 +45,7 @@ app.use('/auth', AuthRouter);
 app.use('/user', UserRouter);
 
 app.get('/', function (req, res) {
-    if (req.user) {
-        res.json({ Page: 'Index', User: req.user });
-    } else {
-        res.json({ Page: 'Index', User: 'none' });
-    }
-});
-
-app.get('/login', function (req, res) {
-    res.redirect('http://localhost:8080/auth/discord');
-});
-
-app.get(
-    '/profile',
-    require('connect-ensure-login').ensureLoggedIn(),
-    function (req, res) {
-        res.json({ Username: 'Login Page' });
-    }
-);
-
-app.get('/logout', function (req, res) {
-    req.session.destroy(function (err) {
-        res.redirect('/');
-    });
-});
-
-app.get('/failure', function (req, res) {
-    res.json({ Failed: 'could not login' });
+    res.send("The server is running! yay.")
 });
 
 app.listen(process.env['PORT'] || 8080, function (err) {
