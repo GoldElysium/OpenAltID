@@ -103,9 +103,9 @@ module.exports.getAccountAges = async function getAccountAges(accounts) {
     if (accounts.has('reddit')) {
         const redditWrapper = new RedditWrapper({
             userAgent: 'OpenAD (v1)',
-            clientId: 'ANqQWysAuwku_Q',
-            clientSecret: 'fHqm8-jWr1WrfgHztahWxGJbHClrsA',
-            refreshToken: '23964635-WYpmYgqT-pSXz4ciA8yuDT7vaLnEug',
+            clientId: process.env['REDDIT_CLIENT_ID'],
+            clientSecret: process.env['REDDIT_CLIENT_SECRET'],
+            refreshToken: process.env['REDDIT_REFRESH_TOKEN'],
         });
 
         redditPromise = await redditWrapper

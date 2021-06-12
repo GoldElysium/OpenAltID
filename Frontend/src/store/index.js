@@ -5,7 +5,7 @@ import Cookies from 'js-cookie'
 
 Vue.use(Vuex)
 
-let BACKEND_API_BASEURI = 'http://api.verify.holoen.fans'
+let BACKEND_API_BASEURI = 'https://api.verify.holoen.fans'
 
 export default new Vuex.Store({
     state: {
