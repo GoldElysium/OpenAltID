@@ -35,7 +35,7 @@ export default {
         },
         logout: async function () {
 
-            let status = await fetch(this.$store.state.BACKEND_API_BASEURI + "logout", {
+            let status = await fetch(this.$store.state.BACKEND_API_BASEURI + "/user/logout", {
                 credentials: "include"
             })
 
