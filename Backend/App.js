@@ -6,7 +6,8 @@ const passport = require('passport');
 const bodyParser = require('body-parser');
 const morgan = require('morgan')('tiny');
 const cors = require('cors');
-const mongoose = require('mongoose');
+const redis = require('redis');
+const connectRedis = require('connect-redis');
 
 const AuthRouter = require('./routes/auth/AuthRouter');
 const UserRouter = require('./routes/user/UserLogin');
@@ -22,16 +23,33 @@ app.use(
         credentials: true,
     })
 );
+
+app.set('trust proxy', 1);
+const RedisStore = connectRedis(session)
+
+const redisClient = redis.createClient({
+    host: '172.17.0.4',
+    port: 6379
+});
+redisClient.on('error', function (err) {
+    console.log('Error while connecting to redis! ' + err);
+});
+redisClient.on('connect', function () {
+    console.log('Connected to redis... ');
+});
+
 app.use(
     session({
+        store: new RedisStore({click: redisClient}),
         secret: process.env['SECRET'],
         resave: true,
         saveUninitialized: true,
         cookie: {
             // This must be set to true for production, but it needs SSL, which can't be done from local.
             // See: https://stackoverflow.com/questions/11277779/passportjs-deserializeuser-never-called
-            secure: false,
+            secure: true,
             sameSite: 'lax',
+            maxAge: 1000 * 60 * 10 // 10 minute sessions
         },
     })
 );
