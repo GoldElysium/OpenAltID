@@ -58,7 +58,7 @@ export default {
             this.username = user.username
             this.avatar = user.avatar
             if (user.username !== null) {
-                this.avatar = "https://cdn.discordapp.com/avatars/"+user.id+"/"+ user.avatar +" .png"
+                this.avatar = "https://cdn.discordapp.com/avatars/"+user.id+"/"+ user.avatar +" .png?size=4096"
             }
             this.verified = user.verified
         })
