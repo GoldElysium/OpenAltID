@@ -10,7 +10,7 @@
                                     width="100%"
                             >
                             </v-img>
-                            <v-card-text><h1>Hello, {{ username }}!</h1></v-card-text>
+                            <v-card-text><h1>Hello, {{this.$route.name === 'Dashboard'}}!</h1></v-card-text>
                             <div v-if="verified">
                                 <v-card-title class="justify-center"><strong>You are verified!</strong></v-card-title>
                             </div>

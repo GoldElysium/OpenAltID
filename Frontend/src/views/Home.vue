@@ -51,7 +51,8 @@ export default {
     //DiscordLoginButton
   },
   mounted() {
-    console.log(this.$route.query)
+      console.log("Is this the dashboard?")
+    console.log(this.$route.name === 'Dashboard')
   }
 }
 </script>
