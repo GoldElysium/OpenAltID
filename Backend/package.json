@@ -9,6 +9,7 @@
     "axios": "^0.21.1",
     "body-parser": "^1.18.3",
     "connect-ensure-login": "^0.1.1",
+    "connect-redis": "^6.0.0",
     "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",
     "debug": "~2.6.9",
@@ -30,6 +31,7 @@
     "passport-twitter": "^1.0.4",
     "pug": "2.0.0-beta11",
     "rascal": "^13.0.2",
+    "redis": "^3.1.2",
     "snoowrap": "^1.23.0",
     "twitch": "^4.5.5",
     "twitter": "^1.7.1"

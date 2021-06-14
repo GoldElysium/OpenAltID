@@ -7,7 +7,7 @@
             <v-spacer></v-spacer>
             <v-toolbar-items class="align-center">
                 <DiscordLoginButton></DiscordLoginButton>
-                <div class="pa-2" v-if="!this.$store.getters.getLoggedIn">
+                <div class="pa-2" v-if='this.$route.name === /dashboard'>
                     <v-btn
                         disabled
                         elevation="2"
