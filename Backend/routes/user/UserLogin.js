@@ -15,7 +15,7 @@ router.get('/login', function (req, res) {
 // Just destroys the session and goes back /
 router.get('/logout', function (req, res) {
     req.session.destroy(function (err) {
-        res.redirect('/');
+        return res.send("Logged out user.")
     });
 });
 
