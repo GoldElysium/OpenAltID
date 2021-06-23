@@ -4,13 +4,13 @@
             <v-row>
                 <v-col class="ma-auto" cols="auto">
                     <v-container fluid>
-                        <v-card class="pa-5 ma-auto" outlined  width="500">
+                        <v-card class="pa-5 ma-auto" outlined  width="30%">
                             <v-img
                                     :src=avatar
                                     width="100%"
                             >
                             </v-img>
-                            <v-card-text><h1>Hello, {{this.$route.name === 'Dashboard'}}!</h1></v-card-text>
+                            <v-card-text><h1>Hello, {{ username }}!</h1></v-card-text>
                             <div v-if="verified">
                                 <v-card-title class="justify-center"><strong>You are verified!</strong></v-card-title>
                             </div>
@@ -74,7 +74,8 @@ export default {
                 this.$router.go()
             }
         },
-    }
+    },
+
 }
 </script>
 

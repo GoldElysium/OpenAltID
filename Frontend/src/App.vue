@@ -7,7 +7,7 @@
             <v-spacer></v-spacer>
             <v-toolbar-items class="align-center">
                 <DiscordLoginButton></DiscordLoginButton>
-                <div class="pa-2" v-if="this.$route.name === 'Dashboard' && !this.$store.getters.getLoggedIn">
+                <div class="pa-2" v-if="currentPage === 'Dashboard' && !loggedInStatus">
                     <v-btn
                         disabled
                         elevation="2"
@@ -66,6 +66,12 @@
 import DiscordLoginButton from "@/components/DiscordLoginButton";
 
 export default {
+    data () {
+        return {
+            currentPage: this.$route.name,
+            loggedInStatus: this.$store.getters.getLoggedIn
+        }
+    },
     components: {DiscordLoginButton},
 }
 </script>

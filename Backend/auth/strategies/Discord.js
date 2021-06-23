@@ -8,7 +8,7 @@ module.exports = function (passport) {
             {
                 clientID: process.env.DISCORD_CLIENT_ID,
                 clientSecret: process.env.DISCORD_CLIENT_SECRET,
-                callbackURL: 'https://verify.holoen.fans/discordredirect',
+                callbackURL: process.env['FRONTEND_HOST'] + '/discordredirect',
                 scope: ['identify', 'connections'],
                 state: false,
             },

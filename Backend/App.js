@@ -24,6 +24,8 @@ app.use(
     })
 );
 
+console.log(process.env['FRONTEND_HOST'])
+
 app.set('trust proxy', 1);
 const RedisStore = connectRedis(session)
 
@@ -48,7 +50,7 @@ app.use(
         cookie: {
             // This must be set to true for production, but it needs SSL, which can't be done from local.
             // See: https://stackoverflow.com/questions/11277779/passportjs-deserializeuser-never-called
-            secure: true,
+            secure: false,
             sameSite: 'lax',
             maxAge: 1000 * 60 * 10 // 10 minute sessions
         },
