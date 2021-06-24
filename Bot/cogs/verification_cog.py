@@ -3,6 +3,7 @@ from datetime import datetime
 from discord.ext import tasks, commands
 import redis
 from loguru import logger as log
+from redis.exceptions import LockError
 
 from database.dbmanager import get_guild_info
 
@@ -27,19 +28,23 @@ class Verification(commands.Cog):
             Value must be either 'true' or 'false'
             '''
             for key in self.redisClient.scan_iter(f"{key_prefix}:*"):
-                if self.redisClient.get(key) == "true":
-                    value = True
-                else:
-                    value = False
-                key = key.split(':')
-                user_id = key[1]
-                guild_id = key[2]
-                guild = self.bot.get_guild(guild_id)
-                member = guild.get_member(user_id)
-                log.debug(f"Entry found for {value}")
-                guild_settings = await get_guild_info(guild_id)
-                member.add_roles(guild.get_role(guild_settings.verification_role_id))
-                self.redisClient.delete(key)
+                try:
+                    with self.redisClient.lock(key, blocking_timeout=5):
+                        if self.redisClient.get(key) == "true":
+                            value = True
+                        else:
+                            value = False
+                        key = key.split(':')
+                        user_id = key[1]
+                        guild_id = key[2]
+                        guild = self.bot.get_guild(guild_id)
+                        member = guild.get_member(user_id)
+                        log.debug(f"Entry found for {value}")
+                        guild_settings = await get_guild_info(guild_id)
+                        member.add_roles(guild.get_role(guild_settings.verification_role_id))
+                        self.redisClient.delete(key)
+                except LockError:
+                    log.debug(f"Did not acquire lock for {key}.")
         except Exception as e:
             log.error(f"Failed to get keys! {e}")
 
