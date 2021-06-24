@@ -3,9 +3,10 @@ import os
 
 import discord
 import mongoengine
-from discord.ext import commands, tasks
-import secrets
-from database.dbmanager import VerificationData
+from discord.ext import commands
+
+from cogs.verification_cog import Verification
+from database.dbmanager import insert_verification_data, insert_guild
 
 intents = discord.Intents.default()
 intents.members = True
@@ -23,11 +24,15 @@ def connect():
         mongoengine.connect(db_name, host=db_host)
         log.success("Connected to database.")
     except Exception as e:
-        log.critical("Unable to connect to database!")
-        log.critical(e)
+        log.critical(f"Unable to connect to database! {e}")
 
 
-bot = commands.Bot(description="Ironic Bot by Perfect_Irony#5196", command_prefix="$", pm_help=False, intents=intents)
+def get_prefix(bot, message):
+    return "$"
+
+
+bot = commands.Bot(description="Ironic Bot by Perfect_Irony#5196", command_prefix=get_prefix, pm_help=False,
+                   intents=intents)
 
 
 @bot.event
@@ -35,6 +40,15 @@ async def on_ready():
     log.info('Logged in as ' + str(bot.user.name) + ' (ID:' + str(bot.user.id) + ') | Connected to '
              + str(len(bot.guilds)) + ' servers | Connected to ' + str(len(set(bot.get_all_members())))
              + ' users')
+
+    log.info("Loading guilds!")
+
+    for guild in bot.guilds:
+        log.debug(f"Loading guild '{guild.name}' with ID '{guild.id}'")
+        success = await insert_guild(guild.id)
+        if not success:
+            log.critical(f"Failed to insert {guild.name}")
+
 
     log.success("Bot is now ready.")
     return await bot.change_presence(activity=discord.Game('with bits'))
@@ -66,21 +80,11 @@ async def on_member_update(member_before, member_after):
     #   otherwise, give them the role set up in the server for verification
     if member_before.pending is True and member_after.pending is False:
         log.debug(f"User {member_after.name}#{member_after.discriminator} passed screening.")
-        not_inserted = True
-        unique_id = secrets.token_urlsafe(8)
-        # Get a unique urlsafe identifier and insert the information into
-        # the database so it get be queried from frontend
-        while not_inserted:
-            if not VerificationData.objects(verification_ID=unique_id):
-                new_entry = VerificationData(verification_ID=unique_id, guild_ID=member_after.guild.id,
-                                             user_ID=member_after.id)
-                new_entry.save()
-                not_inserted = False
-            else:
-                unique_id = secrets.token_urlsafe(8)
-
-        verify_link = f"https://verify.holoen.fans/verify/{unique_id}"
-        await member_after.send(f"Thank you for joining! Please go to this link to verify: {verify_link}. The link will be valid for 1hr, after which you will need to request a new one.")
+        verify_link = await insert_verification_data(member_after)
+        await member_after.send(
+            f"Thank you for joining! Please go to this link to verify: {verify_link}. The link will be valid for 1hr, "
+            f"after which you will need to request a new one."
+        )
 
 
 @bot.event
@@ -91,21 +95,16 @@ async def on_member_join(member):
 def run_client(*args, **kwargs):
     while True:
         connect()
-        initial_extensions = []
-
-        for extension in initial_extensions:
-            try:
-                bot.load_extension(extension)
-            except Exception as e:
-                log.critical(f'Failed to load extension {extension}. error: ' + str(e))
-
-                bot.load_extension('Bot_Events.Misc_Events')
+        try:
+            bot.add_cog(Verification(bot))
+        except Exception as e:
+            log.critical(f'Error while adding initializing cogs! {e}')
 
         try:
             bot.run(bot_token)
         finally:
             bot.clear()
-            log.warning('restarting')
+            log.warning('The bot is restarting!')
 
 
 run_client()
