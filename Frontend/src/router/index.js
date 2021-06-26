@@ -31,7 +31,7 @@ const routes = [
     component: Verify
   },
   {
-    path: '/discordredirect:identifier',
+    path: '/discordredirect',
     name: 'DiscordRedirect',
     props: true,
     component: DiscordRedirect

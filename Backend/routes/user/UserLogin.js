@@ -25,7 +25,7 @@ let router = express.Router();
 
 // This is just a synonym of auth/discord
 router.get('/login', function (req, res) {
-    res.redirect('https://api.verify.holoen.fans/auth/discord');
+    res.redirect("http://localhost:8080" + '/auth/discord');
 });
 
 // Just destroys the session and goes back /
