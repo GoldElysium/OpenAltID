@@ -1,11 +1,13 @@
 import secrets
-
-from loguru import logger as log
 import os
 
 import discord
 import mongoengine
 from discord.ext import commands
+from dotenv import load_dotenv
+from loguru import logger as log
+
+load_dotenv()
 
 from cogs.management_cog import Management
 from cogs.verification_cog import Verification

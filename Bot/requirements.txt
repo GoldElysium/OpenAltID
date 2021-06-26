@@ -4,3 +4,4 @@ loguru~=0.5.3
 mongoengine~=0.23.1
 wavelink~=0.9.9
 dnspython
+python-dotenv

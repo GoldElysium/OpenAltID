@@ -31,7 +31,7 @@ const RedisStore = connectRedis(session)
 
 const redisClient = redis.createClient({
     // Todo get the ip from env
-    host: process.env['REDIS_IP'] || '172.17.0.2',
+    host: 'Redis',
     port: 6379
 });
 redisClient.on('error', function (err) {

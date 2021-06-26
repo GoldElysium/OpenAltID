@@ -5,20 +5,21 @@ const { verificationModel } = require('../../database/models/VerificationData');
 const { verifyUser } = require('./UserFunctions');
 const { getAccountAges } = require('./UserFunctions');
 const { getUserConnectionIDs } = require('./UserFunctions');
-let redis
+
 const Redis = require("ioredis");
-if (process.env.REDIS_PASS) {
-    redis = new Redis({
-        port: process.env.REDIS_PORT,
-        host: process.env.REDIS_HOST,
-        password: process.env.REDIS_PASS,
-    })
-} else {
-    redis = new Redis({
-        port: process.env.REDIS_PORT,
-        host: process.env.REDIS_HOST,
-    })
-}
+
+const redis = new Redis({
+    port: 6379,
+    host: "Redis",
+})
+
+redis.on("ready", ()=>{
+    console.log("IOREDIS is ready!")
+})
+
+redis.on("error", (error) => {
+    console.error(error)
+})
 
 let router = express.Router();
 
