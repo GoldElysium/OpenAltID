@@ -66,7 +66,7 @@ export default {
     methods: {
         verify: async function () {
             if (this.$store.getters.getLoggedIn) {
-                let response = await fetch(this.$store.state.BACKEND_API_BASEURI + "/user/verify-accounts", {
+                let response = await fetch(this.$store.state.BACKEND_API_BASEURI + "/user/verify-accounts/" + localStorage.getItem("identifier"), {
                     credentials: 'include'
                 })
 

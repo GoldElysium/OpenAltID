@@ -1,3 +1,5 @@
+import secrets
+
 from loguru import logger as log
 import os
 
@@ -5,22 +7,26 @@ import discord
 import mongoengine
 from discord.ext import commands
 
+from cogs.management_cog import Management
 from cogs.verification_cog import Verification
-from database.dbmanager import insert_verification_data, insert_guild
+from database.mongomanager import insert_verification_data, insert_guild
+from database.redismanager import get_redis
+
+redisClient = get_redis()
 
 intents = discord.Intents.default()
 intents.members = True
-
 bot_token = os.environ.get('BOT_TOKEN')
+if bot_token is None:
+    log.critical("NO BOT TOKEN SUPPLIED")
+    exit(0)
 
 
 def connect():
     log.info('Connecting to MongoDB...')
     try:
-        db_username = os.environ.get('DB_USER')
-        db_password = os.environ.get('DB_PASS')
         db_name = os.environ.get('DB_NAME')
-        db_host = f"mongodb+srv://{db_username}:{db_password}@hefsverificationbot.lgjlc.mongodb.net/{db_name}?retryWrites=true&w=majority"
+        db_host = os.environ.get('DB_HOST')
         mongoengine.connect(db_name, host=db_host)
         log.success("Connected to database.")
     except Exception as e:
@@ -48,7 +54,6 @@ async def on_ready():
         success = await insert_guild(guild.id)
         if not success:
             log.critical(f"Failed to insert {guild.name}")
-
 
     log.success("Bot is now ready.")
     return await bot.change_presence(activity=discord.Game('with bits'))
@@ -80,6 +85,21 @@ async def on_member_update(member_before, member_after):
     #   otherwise, give them the role set up in the server for verification
     if member_before.pending is True and member_after.pending is False:
         log.debug(f"User {member_after.name}#{member_after.discriminator} passed screening.")
+
+        retry = True
+        unique_ID = secrets.token_urlsafe(8)
+        """
+        Keys: uuid:[unique_string]
+        Values: [member_id]:[guild_id]
+        """
+        while retry:
+            if redisClient.get(f"uuid:{unique_ID}") is None:
+                redisClient.set(f"uuid:{unique_ID}", f"{member_after.id}:{member_after.guild.id}", ex=3600)
+                retry = False
+            else:
+                # reset the uuid if it already exists
+                unique_ID = secrets.token_urlsafe(8)
+
         verify_link = await insert_verification_data(member_after)
         await member_after.send(
             f"Thank you for joining! Please go to this link to verify: {verify_link}. The link will be valid for 1hr, "
@@ -97,6 +117,8 @@ def run_client(*args, **kwargs):
         connect()
         try:
             bot.add_cog(Verification(bot))
+            bot.add_cog(Management(bot))
+            # bot.add_cog(Music(bot))
         except Exception as e:
             log.critical(f'Error while adding initializing cogs! {e}')
 

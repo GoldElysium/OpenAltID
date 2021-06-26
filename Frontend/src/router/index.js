@@ -22,7 +22,7 @@ const routes = [
     component: Home
   },
   {
-    path: '/verify:identifier?',
+    path: '/verify/:identifier',
     name: 'Verify',
     props: true,
     // route level code-splitting
@@ -31,7 +31,7 @@ const routes = [
     component: Verify
   },
   {
-    path: '/discordredirect:identifier?',
+    path: '/discordredirect:identifier',
     name: 'DiscordRedirect',
     props: true,
     component: DiscordRedirect
