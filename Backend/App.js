@@ -6,11 +6,11 @@ const passport = require('passport');
 const bodyParser = require('body-parser');
 const morgan = require('morgan')('tiny');
 const cors = require('cors');
-const redis = require('redis');
 const connectRedis = require('connect-redis');
 
 const AuthRouter = require('./routes/auth/AuthRouter');
 const UserRouter = require('./routes/user/UserLogin');
+const redis = require("redis");
 
 // Create the express app
 const app = express();
