@@ -34,9 +34,7 @@
     "redis": "^3.1.2",
     "snoowrap": "^1.23.0",
     "twitch": "^4.5.5",
-    "twitter": "^1.7.1"
-  },
-  "devDependencies": {
+    "twitter": "^1.7.1",
     "ioredis": "^4.27.6"
   }
 }
