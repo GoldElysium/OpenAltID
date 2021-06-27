@@ -41,6 +41,27 @@ class VerificationData(Document):
     # Expire the documents after 1 hr
 
 
+async def set_guild_verification_role(guild_ID, role_ID):
+    try:
+        guild = Guilds.objects.get(guild_ID=guild_ID)
+        guild.verification_role_ID = role_ID
+        guild.save()
+        return None
+    except Exception as e:
+        log.error(f"Could not add role [{role_ID}] to guild [{guild_ID}]")
+        return e
+
+
+async def set_guild_mod_role(guild_ID, role_ID):
+    try:
+        guild = Guilds.objects.get(guild_ID=guild_ID)
+        guild.mod_role_ID = role_ID
+        guild.save()
+        return None
+    except Exception as e:
+        log.error(f"Could not add role [{role_ID}] to guild [{guild_ID}]")
+        return e
+
 async def get_guild_info(guild_ID):
     try:
         guild = Guilds.objects.get(guild_ID=guild_ID)

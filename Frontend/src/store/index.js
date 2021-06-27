@@ -5,7 +5,7 @@ import Cookies from 'js-cookie'
 
 Vue.use(Vuex)
 
-let BACKEND_API_BASEURI = process.env['VUE_APP_API_HOST']
+let BACKEND_API_BASEURI = "http://localhost:8080"
 
 export default new Vuex.Store({
     state: {

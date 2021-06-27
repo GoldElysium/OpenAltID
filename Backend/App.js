@@ -6,11 +6,11 @@ const passport = require('passport');
 const bodyParser = require('body-parser');
 const morgan = require('morgan')('tiny');
 const cors = require('cors');
-const redis = require('redis');
 const connectRedis = require('connect-redis');
 
 const AuthRouter = require('./routes/auth/AuthRouter');
 const UserRouter = require('./routes/user/UserLogin');
+const redis = require("redis");
 
 // Create the express app
 const app = express();
@@ -31,7 +31,7 @@ const RedisStore = connectRedis(session)
 
 const redisClient = redis.createClient({
     // Todo get the ip from env
-    host: process.env['REDIS_IP'] || '172.17.0.2',
+    host: 'Redis',
     port: 6379
 });
 redisClient.on('error', function (err) {
