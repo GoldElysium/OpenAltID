@@ -96,19 +96,22 @@ async def on_member_update(member_before, member_after):
         """
         while retry:
             if redisClient.get(f"uuid:{unique_ID}") is None:
-                log.info(redisClient.keys("*"))
                 redisClient.set(f"uuid:{unique_ID}", f"{member_after.id}:{member_after.guild.id}", ex=3600)
-                log.info(redisClient.get(f"Key set for: uuid:{unique_ID}"))
+                log.debug(f"Verification queued with key 'uuid:{unique_ID}' and value '{redisClient.get(f'uuid:{unique_ID}')}'")
                 retry = False
             else:
                 # reset the uuid if it already exists
                 unique_ID = secrets.token_urlsafe(8)
 
-        verify_link = await insert_verification_data(member_after)
-        await member_after.send(
-            f"Thank you for joining! Please go to this link to verify: {verify_link}. The link will be valid for 1hr, "
-            f"after which you will need to request a new one."
-        )
+        log.debug(f"UUID: {unique_ID}")
+        verify_link = f"{os.environ.get('FRONTEND_HOST')}/verify/{unique_ID}"
+        if redisClient.get(f"uuid:{unique_ID}") == f"{member_after.id}:{member_after.guild.id}":
+            await member_after.send(
+                f"Thank you for joining! Please go to this link to verify: {verify_link}. The link will be valid for 1hr, "
+                f"after which you will need to request a new one."
+            )
+        else:
+            await member_after.send("An error occured while queuing your verification. Please try again later. If the problem persists contact server admins.")
 
 
 @bot.event

@@ -57,6 +57,7 @@ module.exports.getAccountAges = async function getAccountAges(accounts) {
         resolve(null);
     });
     if (accounts.has('youtube')) {
+
         const youtube = google.youtube({
             version: 'v3',
             auth: process.env.YOUTUBE_API_KEY,

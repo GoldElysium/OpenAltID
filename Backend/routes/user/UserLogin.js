@@ -1,7 +1,8 @@
 const express = require('express');
 const axios = require('axios');
 const { UserModel } = require('../../database/models/UserModel');
-const { verificationModel } = require('../../database/models/VerificationData');
+const { verificationModel } = require('../../database/models/VerificationDataModel');
+const { SocialMediaAccountsModel } = require('../../database/models/SocialMediaAccountsModel');
 const { verifyUser } = require('./UserFunctions');
 const { getAccountAges } = require('./UserFunctions');
 const { getUserConnectionIDs } = require('./UserFunctions');
@@ -76,6 +77,28 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
 
         try {
             let accounts = await getUserConnectionIDs(req.user);
+            accounts.foreach(async (accountID, keyAccountType, map) => {
+                let accountDoc = SocialMediaAccountsModel({
+                    account_type: keyAccountType,
+                    account_ID: accountID,
+                    discord_ID: req.user.id
+                })
+
+                let account = await SocialMediaAccountsModel.where({
+                    account_type: keyAccountType,
+                    account_ID: accountID,
+                }).findOne().exec()
+
+                if (account) {
+                    if (account.discord_ID !@)
+                }
+
+                if (count>0){
+                    return res.status(500).send("Connections found from another account.");
+                } else {
+                    await accountDoc.save()
+                }
+            })
             accounts = await getAccountAges(accounts);
 
             // Todo Actually pass in the real server ID

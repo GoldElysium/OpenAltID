@@ -52,6 +52,7 @@ class Verification(commands.Cog):
                         guild_id = key_split[2]
                         guild = self.bot.get_guild(int(guild_id))
                         member = guild.get_member(int(user_id))
+                        self.redisClient.delete(key)
                         await member.send(f"You did not pass verification for {guild.name}")
 
             except LockError as e:

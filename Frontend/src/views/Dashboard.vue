@@ -49,7 +49,10 @@ export default {
         }
     },
     beforeCreate() {
-        if (localStorage.identifier !== 'undefined') {
+        console.log("Identifier:")
+        console.log(this.$cookies.get("identifier"))
+
+        if (this.$cookies.get("identifier") !== null) {
             console.log("Has identifier")
         } else {
             console.log("Does not have identifier")
@@ -81,13 +84,20 @@ export default {
     },
     methods: {
         verify: async function () {
-            if (this.$store.getters.getLoggedIn && localStorage.identifier !== 'undefined') {
-                let response = await fetch(this.$store.state.BACKEND_API_BASEURI + "/user/verify-accounts/" + localStorage.getItem("identifier"), {
+            console.log("Identifier:")
+            console.log(this.$cookies.get("identifier"))
+            if (this.$store.getters.getLoggedIn && this.$cookies.get("identifier") !== null) {
+                let response = await fetch(this.$store.state.BACKEND_API_BASEURI + "/user/verify-accounts/" + this.$cookies.get("identifier"), {
                     credentials: 'include'
                 })
 
-                this.verified = response.verified
-                this.$router.go()
+                if (response.ok){
+                    this.verified = response.verified
+                    this.$router.go()
+                } else {
+                    await this.showAlert(response.statusText)
+                }
+
             } else {
                 await this.showAlert("You need to have clicked a link DMed by the Bot!")
                 console.error("You must have an identifier to verify")

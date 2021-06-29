@@ -77,7 +77,7 @@ app.listen(process.env['PORT'] || 8080, function (err) {
         logger.error("An error occurred while starting the server.")
     } else {
         const db = require('./database/Mongo')();
-        logger.info('Listening on port: ', process.env['PORT'] || 8080);
+        logger.info(`Listening on port: ${process.env['PORT'] || 8080}`);
     }
 });
 

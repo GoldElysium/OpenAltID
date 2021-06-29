@@ -15,7 +15,7 @@ export default {
     DiscordLoginButton
   },
   mounted() {
-      localStorage.setItem("identifier", this.$route.params.identifier)
+      this.$cookies.set("identifier", this.$route.params.identifier, "1h")
   }
 }
 </script>
