@@ -7,35 +7,40 @@ const { getAccountAges } = require('./UserFunctions');
 const { getUserConnectionIDs } = require('./UserFunctions');
 
 const Redis = require("ioredis");
+const { logger } = require("../../logger");
 
 const redis = new Redis({
     port: 6379,
     host: "Redis",
 })
 
-redis.on("ready", ()=>{
-    console.log("IOREDIS is ready!")
+redis.on("ready", async ()=>{
+    logger.info("IOREDIS is ready!")
+    await redis.set("Test", "IOREDIS TEST: SUCCESS")
+    let response = await redis.get("Test")
+    logger.info(response)
 })
 
 redis.on("error", (error) => {
-    console.error(error)
+    logger.error("IOREDIS ERROR - "+error)
 })
 
 let router = express.Router();
 
 // This is just a synonym of auth/discord
-router.get('/login', function (req, res) {
+router.get('/login', async function (req, res) {
+    console.log("/login HOSTNAME:" + process.env.HOSTNAME)
     res.redirect("http://localhost:8080" + '/auth/discord');
 });
 
 // Just destroys the session and goes back /
-router.get('/logout', function (req, res) {
+router.get('/logout', async function (req, res) {
     req.session.destroy(function (err) {
         return res.send("Logged out user.")
     });
 });
 
-router.get('/dashboard', function (req, res) {
+router.get('/dashboard', async function (req, res) {
     if (!req.user) {
         return res.status(401).send({ message: 'Not logged in' });
     } else {
@@ -48,7 +53,7 @@ router.get('/dashboard', function (req, res) {
     }
 });
 
-router.get('/is-logged-in', function (req, res) {
+router.get('/is-logged-in', async function (req, res) {
     if (req.user) {
         return res.json({ logged_in: true });
     } else {
@@ -98,28 +103,37 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
                     runValidators: true,
                     useFindAndModify: true,
                 }).exec();
-
+            logger.info("KEYS: " + await redis.keys("*"))
+            logger.info("IDENTIFIER: " + "uuid:" + req.params.identifier)
             let redisValue = await redis.get("uuid:" + req.params.identifier)
-
-            redisValue = redisValue.split(":")
-            let user_id = redisValue[0]
-            let guild_id = redisValue[1]
-            let key = `complete:${user_id}:${guild_id}`
-            let value = "false"
-            if (verified) {
-                value = "true"
+            logger.info(redisValue)
+            if (redisValue) {
+                redisValue = redisValue.split(":")
+                let user_id = redisValue[0]
+                let guild_id = redisValue[1]
+                let key = `complete:${user_id}:${guild_id}`
+                let value = "false"
+                if (verified) {
+                    value = "true"
+                }
+                await redis.set(key, value)
+                return res.send({
+                    verified: verified,
+                });
             }
-            await redis.set(key, value)
-            return res.send({
-                verified: verified,
-            });
+            else {
+                logger.error("Incorrect identifier.")
+                return res.status(500).send({
+                    message: 'Incorrect identifier.',
+                });
+            }
+
         } catch (e) {
-            console.log(e);
-            res.status(500).send({
+            logger.error(e)
+            return res.status(500).send({
                 message: 'Error occurred while fetching account info.',
             });
         }
-        res.send('Done.');
     }
 });
 

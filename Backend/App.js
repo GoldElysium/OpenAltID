@@ -7,14 +7,18 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan')('tiny');
 const cors = require('cors');
 const connectRedis = require('connect-redis');
+const promBundle = require("express-prom-bundle");
+const metricsMiddleware = promBundle({includeMethod: true});
 
 const AuthRouter = require('./routes/auth/AuthRouter');
 const UserRouter = require('./routes/user/UserLogin');
 const redis = require("redis");
+const { logger } = require("./logger");
 
 // Create the express app
 const app = express();
 
+app.use(metricsMiddleware);
 app.use(morgan);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
@@ -23,8 +27,6 @@ app.use(
         credentials: true,
     })
 );
-
-console.log(process.env['FRONTEND_HOST'])
 
 app.set('trust proxy', 1);
 const RedisStore = connectRedis(session)
@@ -35,16 +37,16 @@ const redisClient = redis.createClient({
     port: 6379
 });
 redisClient.on('error', function (err) {
-    console.log('Error while connecting to redis! ' + err);
+    logger.error("Could not connect to Redis for session!")
 });
 redisClient.on('connect', function () {
-    console.log('Connected to Redis!');
+    logger.info('Connected to Redis for session!');
 });
 
 app.use(
     session({
         store: new RedisStore({client: redisClient}),
-        secret: process.env['SECRET'] || "setthisinenv",
+        secret: process.env['SECRET'],
         resave: true,
         saveUninitialized: true,
         cookie: {
@@ -66,16 +68,16 @@ require('./auth/strategies/Discord')(passport);
 app.use('/auth', AuthRouter);
 app.use('/user', UserRouter);
 
-app.get('/', function (req, res) {
+app.get('/', async function (req, res) {
     res.send("The server is running! yay.")
 });
 
 app.listen(process.env['PORT'] || 8080, function (err) {
     if (err) {
-        console.log('Failed to start server: ', err);
+        logger.error("An error occurred while starting the server.")
     } else {
         const db = require('./database/Mongo')();
-        console.log('Listening on port: ', process.env['PORT'] || 8080);
+        logger.info('Listening on port: ', process.env['PORT'] || 8080);
     }
 });
 

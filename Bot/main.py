@@ -96,7 +96,9 @@ async def on_member_update(member_before, member_after):
         """
         while retry:
             if redisClient.get(f"uuid:{unique_ID}") is None:
+                log.info(redisClient.keys("*"))
                 redisClient.set(f"uuid:{unique_ID}", f"{member_after.id}:{member_after.guild.id}", ex=3600)
+                log.info(redisClient.get(f"Key set for: uuid:{unique_ID}"))
                 retry = False
             else:
                 # reset the uuid if it already exists
