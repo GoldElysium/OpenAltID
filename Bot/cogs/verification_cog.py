@@ -43,7 +43,7 @@ class Verification(commands.Cog):
                             log.error("The guild does not have a verification role set!")
                             return
                         role = guild.get_role(int(guild_settings.verification_role_ID))
-                        member.add_roles(role)
+                        await member.add_roles(role)
                         self.redisClient.delete(key)
                         await member.send(f"You have been verified in {guild.name}")
                     else:

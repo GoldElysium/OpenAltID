@@ -32,6 +32,8 @@ class Guilds(Document):
     verification_role_ID = IntField()
     mod_role_ID = IntField()
     prefix_string = StringField(default="$")
+    verification_age = IntField(default=90)
+    enabled = BooleanField(default=False)
 
 
 class VerificationData(Document):
@@ -48,7 +50,7 @@ async def set_guild_verification_role(guild_ID, role_ID):
         guild.save()
         return None
     except Exception as e:
-        log.error(f"Could not add role [{role_ID}] to guild [{guild_ID}]")
+        log.error(f"Could not add role [{role_ID}] to guild [{guild_ID}] {e}")
         return e
 
 
@@ -59,8 +61,31 @@ async def set_guild_mod_role(guild_ID, role_ID):
         guild.save()
         return None
     except Exception as e:
-        log.error(f"Could not add role [{role_ID}] to guild [{guild_ID}]")
+        log.error(f"Could not add role [{role_ID}] to guild [{guild_ID}] {e}")
         return e
+
+
+async def set_guild_enabled(guild_ID, enabled):
+    try:
+        guild = Guilds.objects.get(guild_ID=guild_ID)
+        guild.enabled = enabled
+        guild.save()
+        return None
+    except Exception as e:
+        log.error(f"Could not set enabled [{enabled}] to guild [{guild_ID}] {e}")
+        return e
+
+
+async def set_guild_verification_age(guild_ID, age):
+    try:
+        guild = Guilds.objects.get(guild_ID=guild_ID)
+        guild.verification_age = int(age)
+        guild.save()
+        return None
+    except Exception as e:
+        log.error(f"Could not set age to [{age}] to guild [{guild_ID}]")
+        return e
+
 
 async def get_guild_info(guild_ID):
     try:
@@ -68,6 +93,7 @@ async def get_guild_info(guild_ID):
         return guild
     except Exception as e:
         log.error(f"Error while retrieving guild: {e}\n")
+        return None
 
 
 async def insert_verification_data(member):
