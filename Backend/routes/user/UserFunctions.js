@@ -6,6 +6,29 @@ const { google } = require('googleapis');
 const moment = require('moment');
 const axios = require('axios');
 
+module.exports.checkIfAccountExists = async function checkIfAccountExists(accounts) {
+    let dupFound = false
+    accounts.foreach(async (accountID, keyAccountType, map) => {
+        let accountDoc = SocialMediaAccountsModel({
+            account_type: keyAccountType,
+            account_ID: accountID,
+            discord_ID: req.user.id
+        });
+
+        let account = await SocialMediaAccountsModel.where({
+            account_type: keyAccountType,
+            account_ID: accountID
+        }).findOne().exec();
+
+        if (account) {
+            if (account.discord_ID !== req.user.id) {
+                dupFound = true
+            }
+        }
+    });
+    return dupFound
+}
+
 /**
  * Takes a req.user and then returns a map containing supported accounts
  * and ids

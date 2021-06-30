@@ -8,6 +8,7 @@ const { getAccountAges } = require('./UserFunctions');
 const { getUserConnectionIDs } = require('./UserFunctions');
 
 const Redis = require("ioredis");
+const { checkIfAccountExists } = require("./UserFunctions");
 const { logger } = require("../../logger");
 
 const redis = new Redis({
@@ -67,98 +68,95 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         return res.status(401).send({
             message: 'No user in session, you must login first.',
         });
-    } else {
-        // Avoid doing it again if they were verified
-        if (req.user.verified) {
+    }
+
+    // Avoid doing it again if they were verified
+    if (req.user.verified === true) {
+        return res.send({
+            verified: true,
+        });
+    }
+
+    try {
+        let accounts = await getUserConnectionIDs(req.user);
+        // Check for alts, if one is found do not verify the user
+        let duplicateFound = checkIfAccountExists(accounts);
+        if (duplicateFound) {
             return res.send({
-                verified: req.user.verified,
-            });
+                verified: false,
+                reason: "Alt account detected."
+            })
         }
+        // Get the ages of the accounts
+        accounts = await getAccountAges(accounts);
+
+        let redisValue = await redis.get("uuid:" + req.params.identifier)
+        logger.info(redisValue)
+        if (!redisValue) {
+            return res.send({
+                verified: false,
+                reason: "Invalid identifier."
+            })
+        }
+        let user_id
+        let guild_id
 
         try {
-            let accounts = await getUserConnectionIDs(req.user);
-            accounts.foreach(async (accountID, keyAccountType, map) => {
-                let accountDoc = SocialMediaAccountsModel({
-                    account_type: keyAccountType,
-                    account_ID: accountID,
-                    discord_ID: req.user.id
-                })
-
-                let account = await SocialMediaAccountsModel.where({
-                    account_type: keyAccountType,
-                    account_ID: accountID,
-                }).findOne().exec()
-
-                if (account) {
-                    if (account.discord_ID !== req.user.id) {
-                        res.status(500).send("Alt account detected");
-                    }
-                }
-
-                if (count>0){
-                    return res.status(500).send("Connections found from another account.");
-                } else {
-                    await accountDoc.save()
-                }
+            redisValue = redisValue.split(":")
+            user_id = redisValue[0]
+            guild_id = redisValue[1]
+        } catch (error) {
+            logger.error(error)
+            return res.send({
+                verified: false,
+                reason: "Internal server error."
             })
-            accounts = await getAccountAges(accounts);
-
-            // Todo Actually pass in the real server ID
-            let verified = await verifyUser(accounts, 123456789, req.user);
-
-            let docu = new UserModel({
-                _id: req.user.id,
-                username: req.user.username,
-                mfa_enabled:
-                    String(req.user.mfa_enabled).toLowerCase() === 'true',
-                premium_type: parseInt(req.user.premium_type),
-                verifiedEmail: req.user.verifiedEmail,
-                verified: verified,
-                accessToken: req.user.accessToken,
-                avatar: req.user.avatar,
-                connection: [],
-            });
-
-            await UserModel.findOneAndUpdate(
-                { _id: req.user.id },
-                docu,
-                {
-                    upsert: true,
-                    new: true,
-                    runValidators: true,
-                    useFindAndModify: true,
-                }).exec();
-            logger.info("KEYS: " + await redis.keys("*"))
-            logger.info("IDENTIFIER: " + "uuid:" + req.params.identifier)
-            let redisValue = await redis.get("uuid:" + req.params.identifier)
-            logger.info(redisValue)
-            if (redisValue) {
-                redisValue = redisValue.split(":")
-                let user_id = redisValue[0]
-                let guild_id = redisValue[1]
-                let key = `complete:${user_id}:${guild_id}`
-                let value = "false"
-                if (verified) {
-                    value = "true"
-                }
-                await redis.set(key, value)
-                return res.send({
-                    verified: verified,
-                });
-            }
-            else {
-                logger.error("Incorrect identifier.")
-                return res.status(500).send({
-                    message: 'Incorrect identifier.',
-                });
-            }
-
-        } catch (e) {
-            logger.error(e)
-            return res.status(500).send({
-                message: 'Error occurred while fetching account info.',
-            });
         }
+
+        let verified = await verifyUser(accounts, guild_id, req.user);
+
+        let docu = new UserModel({
+            _id: req.user.id,
+            username: req.user.username,
+            mfa_enabled:
+                String(req.user.mfa_enabled).toLowerCase() === 'true',
+            premium_type: parseInt(req.user.premium_type),
+            verifiedEmail: req.user.verifiedEmail,
+            verified: verified,
+            accessToken: req.user.accessToken,
+            avatar: req.user.avatar,
+            connection: [],
+        });
+
+        await UserModel.findOneAndUpdate(
+            { _id: req.user.id },
+            docu,
+            {
+                upsert: true,
+            }).exec();
+
+        logger.info("KEYS: " + await redis.keys("*"))
+        logger.info("IDENTIFIER: " + "uuid:" + req.params.identifier)
+        logger.info(redisValue)
+
+        let key = `complete:${user_id}:${guild_id}`
+        let value = "false"
+        if (verified) {
+            value = "true"
+        }
+        await redis.set(key, value)
+        return res.send({
+            verified: verified,
+        });
+
+
+
+    } catch (e) {
+        logger.error(e)
+        return res.send({
+            verified: false
+            reason: "Internal server error."
+        })
     }
 });
 
