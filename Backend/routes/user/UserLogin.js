@@ -142,6 +142,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         if (verified) {
             return res.send({
                 verified: verified,
+                reason: "You should be verified."
             });
         } else {
             return res.send({
