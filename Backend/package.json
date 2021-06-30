@@ -40,6 +40,7 @@
     "twitter": "^1.7.1"
   },
   "devDependencies": {
+    "helmet": "^4.6.0",
     "winston": "^3.3.3"
   }
 }

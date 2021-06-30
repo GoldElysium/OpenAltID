@@ -32,7 +32,7 @@ let router = express.Router();
 // This is just a synonym of auth/discord
 router.get('/login', async function (req, res) {
     console.log("/login HOSTNAME:" + process.env.HOSTNAME)
-    res.redirect("http://localhost:8080" + '/auth/discord');
+    res.redirect(process.env.HOSTNAME + '/auth/discord');
 });
 
 // Just destroys the session and goes back /

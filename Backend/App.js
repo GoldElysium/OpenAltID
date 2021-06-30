@@ -14,11 +14,13 @@ const AuthRouter = require('./routes/auth/AuthRouter');
 const UserRouter = require('./routes/user/UserLogin');
 const redis = require("redis");
 const { logger } = require("./logger");
+const helmet = require('helmet')
 
 // Create the express app
 const app = express();
 
 app.use(metricsMiddleware);
+app.use(helmet());
 app.use(morgan);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
