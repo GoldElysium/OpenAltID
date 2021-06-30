@@ -1,4 +1,4 @@
-const winston = require("winston");
+const winston = require('winston');
 
 module.exports.logger = winston.createLogger({
     level: 'info',
@@ -12,11 +12,11 @@ module.exports.logger = winston.createLogger({
         new winston.transports.File({
             filename: 'error.log',
             level: 'error',
-            format: winston.format.prettyPrint()
+            format: winston.format.prettyPrint(),
         }),
         new winston.transports.File({
             filename: 'combined.log',
-            format: winston.format.prettyPrint()
+            format: winston.format.prettyPrint(),
         }),
         new winston.transports.Console({
             format: winston.format.cli(),

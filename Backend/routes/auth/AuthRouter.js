@@ -1,7 +1,7 @@
-let express = require('express');
-let DiscordAuth = require('./DiscordAuth');
+const express = require('express');
+const DiscordAuth = require('./DiscordAuth');
 
-let router = express.Router();
+const router = express.Router();
 
 router.use('/discord', DiscordAuth);
 module.exports = router;

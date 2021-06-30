@@ -1,24 +1,23 @@
-const axios = require('axios');
-let { UserModel } = require('../../database/models/UserModel');
-let DiscordStrategy = require('passport-discord').Strategy;
+const DiscordStrategy = require('passport-discord').Strategy;
+const { UserModel } = require('../../database/models/UserModel');
 
-module.exports = function (passport) {
+module.exports = (passport) => {
     passport.use(
         new DiscordStrategy(
             {
                 clientID: process.env.DISCORD_CLIENT_ID,
                 clientSecret: process.env.DISCORD_CLIENT_SECRET,
-                callbackURL: process.env['FRONTEND_HOST'] + '/discordredirect',
+                callbackURL: `${process.env.FRONTEND_HOST}/discordredirect`,
                 scope: ['identify', 'connections'],
                 state: false,
             },
-            async function (accessToken, refreshToken, profile, done) {
-                let docu = new UserModel({
+            (async (_, __, profile, done) => {
+                const docu = new UserModel({
                     _id: profile.id,
                     username: profile.username,
                     mfa_enabled:
                         String(profile.mfa_enabled).toLowerCase() === 'true',
-                    premium_type: parseInt(profile.premium_type),
+                    premium_type: parseInt(profile.premium_type, 10),
                     verifiedEmail:
                         String(profile.verified).toLowerCase() === 'true',
                     verified: false,
@@ -36,12 +35,12 @@ module.exports = function (passport) {
                         runValidators: true,
                         useFindAndModify: true,
                     },
-                    function (err) {
+                    (err) => {
                         console.log(err);
-                    }
+                    },
                 );
                 return done(null, profile);
-            }
-        )
+            }),
+        ),
     );
 };

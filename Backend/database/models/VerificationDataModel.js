@@ -1,8 +1,6 @@
-let mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-
-
-let verificationSchema = new mongoose.Schema({
+const verificationSchema = new mongoose.Schema({
     verification_ID: String,
     guild_ID: Number,
     user_ID: Number,
@@ -10,5 +8,4 @@ let verificationSchema = new mongoose.Schema({
 
 module.exports = {
     verificationModel: mongoose.model('Verification', verificationSchema),
-
 };
