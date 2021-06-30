@@ -6,12 +6,12 @@ import Cookies from 'js-cookie'
 Vue.use(Vuex)
 
 let BACKEND_API_BASEURI = process.env.VUE_APP_API_HOST
-
 export default new Vuex.Store({
     state: {
         BACKEND_API_BASEURI: BACKEND_API_BASEURI,
         logged_in: false,
-        token: Cookies.get('token') || ''
+        token: Cookies.get('token') || '',
+        siteTitle: ""
     },
     mutations: {
         setToken: (state, token, status) => {

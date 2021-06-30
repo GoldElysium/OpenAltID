@@ -2,7 +2,7 @@
     <v-app dark>
         <v-app-bar app>
             <v-app-bar-title>
-                OpenAD
+                HEFS Verification
             </v-app-bar-title>
             <v-spacer></v-spacer>
             <v-toolbar-items class="align-center">
