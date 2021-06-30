@@ -15,10 +15,12 @@
     "debug": "~2.6.9",
     "dotenv": "^9.0.0",
     "express": "~4.16.1",
+    "express-prom-bundle": "^6.3.6",
     "express-session": "^1.17.2",
     "googleapis": "^75.0.0",
     "grant": "^5.4.13",
     "http-errors": "~1.6.3",
+    "ioredis": "^4.27.6",
     "moment": "^2.29.1",
     "mongoose": "^5.12.12",
     "morgan": "~1.9.1",
@@ -29,12 +31,15 @@
     "passport-oauth": "^1.0.0",
     "passport-twitch": "^1.0.3",
     "passport-twitter": "^1.0.4",
+    "prom-client": "^13.1.0",
     "pug": "2.0.0-beta11",
     "rascal": "^13.0.2",
     "redis": "^3.1.2",
     "snoowrap": "^1.23.0",
     "twitch": "^4.5.5",
-    "twitter": "^1.7.1",
-    "ioredis": "^4.27.6"
+    "twitter": "^1.7.1"
+  },
+  "devDependencies": {
+    "winston": "^3.3.3"
   }
 }

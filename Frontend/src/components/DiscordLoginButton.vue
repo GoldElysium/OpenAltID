@@ -40,7 +40,7 @@ export default {
             })
 
             console.log(status.json())
-            await this.$router.push("Home")
+            await this.$router.push("Home", () => {this.$router.go()})
         }
     }
 }

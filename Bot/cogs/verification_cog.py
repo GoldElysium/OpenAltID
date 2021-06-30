@@ -43,7 +43,7 @@ class Verification(commands.Cog):
                             log.error("The guild does not have a verification role set!")
                             return
                         role = guild.get_role(int(guild_settings.verification_role_ID))
-                        member.add_roles(role)
+                        await member.add_roles(role)
                         self.redisClient.delete(key)
                         await member.send(f"You have been verified in {guild.name}")
                     else:
@@ -52,6 +52,7 @@ class Verification(commands.Cog):
                         guild_id = key_split[2]
                         guild = self.bot.get_guild(int(guild_id))
                         member = guild.get_member(int(user_id))
+                        self.redisClient.delete(key)
                         await member.send(f"You did not pass verification for {guild.name}")
 
             except LockError as e:

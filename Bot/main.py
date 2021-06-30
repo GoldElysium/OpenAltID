@@ -1,3 +1,4 @@
+import datetime
 import secrets
 import os
 
@@ -11,7 +12,7 @@ load_dotenv()
 
 from cogs.management_cog import Management
 from cogs.verification_cog import Verification
-from database.mongomanager import insert_verification_data, insert_guild
+from database.mongomanager import insert_verification_data, insert_guild, get_guild_info
 from database.redismanager import get_redis
 
 redisClient = get_redis()
@@ -63,29 +64,40 @@ async def on_ready():
 
 @bot.event
 async def on_member_update(member_before, member_after):
-    log.debug(f"Member update in \"{member_after.guild.name}\" "
-              f"for user \"{member_after.name}#{member_after.discriminator}\"")
-
-    if member_before.status != member_after.status:
-        log.debug(f"Status: {member_before.status} >>> {member_after.status}")
-
-    if member_before.activity != member_after.activity:
-        log.debug(f"Activity: {member_before.activity} >>> {member_after.activity}")
-
-    if member_before.roles != member_after.roles:
-        log.debug(f"Roles: {member_before.roles} >>> {member_after.roles}")
-
-    if member_before.pending != member_after.pending:
-        log.debug(f"Pending: {member_before.pending} >>> {member_after.pending}")
-
-    if member_before.nick != member_after.nick:
-        log.debug(f"Nickname: {member_before.nick} >>> {member_after.nick}")
-
     #   Member passed screening
     #   Check the database for server settings and if the user is lower
     #   age than the min age for verification, send them a link to verify
     #   otherwise, give them the role set up in the server for verification
+
     if member_before.pending is True and member_after.pending is False:
+        guild_id = member_after.guild.id
+        guild_settings = await get_guild_info(guild_id)
+
+        log.debug(guild_settings)
+
+        if not guild_settings.enabled:
+            log.debug("Bot is not enabled.")
+            return
+
+        # check account age
+        mintime = datetime.datetime.utcnow() - datetime.timedelta(days=guild_settings.verification_age)
+        if member_after.created_at <= mintime:
+            # Dont need to verify
+            if guild_settings.verification_role_ID is None:
+                await member_after.send(f"The verification role has not been set up in {member_after.guild.name}.")
+                log.error("The guild does not have a verification role set!")
+                return
+            role = member_after.guild.get_role(int(guild_settings.verification_role_ID))
+            await member_after.add_roles(role)
+            return
+
+        if guild_settings.verification_role_ID is None:
+            await member_after.send(f"The verification role has not been set up in {member_after.guild.name}.")
+            log.error("The guild does not have a verification role set!")
+            return
+        role = member_after.guild.get_role(int(guild_settings.verification_role_ID))
+        await member_after.add_roles(role)
+
         log.debug(f"User {member_after.name}#{member_after.discriminator} passed screening.")
 
         retry = True
@@ -97,16 +109,23 @@ async def on_member_update(member_before, member_after):
         while retry:
             if redisClient.get(f"uuid:{unique_ID}") is None:
                 redisClient.set(f"uuid:{unique_ID}", f"{member_after.id}:{member_after.guild.id}", ex=3600)
+                log.debug(f"Verification queued with key 'uuid:{unique_ID}' and value '{redisClient.get(f'uuid:{unique_ID}')}'")
                 retry = False
             else:
                 # reset the uuid if it already exists
                 unique_ID = secrets.token_urlsafe(8)
 
-        verify_link = await insert_verification_data(member_after)
-        await member_after.send(
-            f"Thank you for joining! Please go to this link to verify: {verify_link}. The link will be valid for 1hr, "
-            f"after which you will need to request a new one."
-        )
+        log.debug(f"UUID: {unique_ID}")
+        verify_link = f"{os.environ.get('FRONTEND_HOST')}/verify/{unique_ID}"
+        if redisClient.get(f"uuid:{unique_ID}") == f"{member_after.id}:{member_after.guild.id}":
+            await member_after.send(
+                f"Thank you for joining! __You must connect social media accounts to your Discord first__, then go to "
+                f"this link to verify: {verify_link}. The link will be valid for 1hr, "
+                f"after which you will need to request a new one.\nSupported account types: "
+                f"\nYouTube\nTwitter\nTwitch\nReddit "
+            )
+        else:
+            await member_after.send("An error occured while queuing your verification. Please try again later. If the problem persists contact server admins.")
 
 
 @bot.event
