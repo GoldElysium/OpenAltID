@@ -1,12 +1,13 @@
-let { UserModel } = require('../database/models/UserModel');
+const { UserModel } = require('../database/models/UserModel');
 
-module.exports = function (passport) {
+module.exports = (passport) => {
     // Serialize Stuff
-    passport.serializeUser(function (user, done) {
+    passport.serializeUser((user, done) => {
         done(null, user.id);
     });
 
-    passport.deserializeUser(function (id, done) {
+    passport.deserializeUser((id, done) => {
+        // eslint-disable-next-line max-len
         // receives the info from the session, is then responsible for getting the info from DB and returning the obj
         // get from DB
         UserModel.findById(id)
