@@ -59,7 +59,7 @@ router.get('/is-logged-in', async function (req, res) {
     if (req.user) {
         return res.json({ logged_in: true });
     } else {
-        return res.status(401).send({ message: 'Not logged in' });
+        return res.status(401).json({ message: 'Not logged in' });
     }
 });
 
@@ -70,7 +70,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
 
     // Avoid doing it again if they were verified
     if (req.user.verified === true) {
-        return res.send({
+        return res.json({
             verified: true,
         });
     }
@@ -80,7 +80,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         // Check for alts, if one is found do not verify the user
         let duplicateFound = await checkIfAccountExists(accounts);
         if (duplicateFound) {
-            return res.send({
+            return res.json({
                 verified: false,
                 reason: "Alt account detected."
             })
@@ -89,7 +89,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         accounts = await getAccountAges(accounts);
         let redisValue = await redis.get("uuid:" + req.params.identifier)
         if (!redisValue) {
-            return res.send({
+            return res.json({
                 verified: false,
                 reason: "Invalid identifier."
             })
@@ -103,7 +103,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             guild_id = redisValue[1]
         } catch (error) {
             logger.error(error)
-            return res.send({
+            return res.json({
                 verified: false,
                 reason: "Internal server error."
             })
@@ -140,12 +140,12 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         await redis.set(key, value)
 
         if (verified) {
-            return res.send({
+            return res.json({
                 verified: verified,
                 reason: "You should be verified."
             });
         } else {
-            return res.send({
+            return res.json({
                 verified: verified,
                 reason: "Failed verification, make sure to connect accounts"
             });
@@ -155,7 +155,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
     } catch (e) {
         logger.error("Main try")
         logger.error(e)
-        return res.send({
+        return res.json({
             verified: false,
             reason: "Internal server error.",
         })
