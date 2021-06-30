@@ -79,6 +79,7 @@ async def on_member_update(member_before, member_after):
             log.debug("Bot is not enabled.")
             return
 
+        log.debug("check account age")
         # check account age
         mintime = datetime.datetime.utcnow() - datetime.timedelta(days=guild_settings.verification_age)
         if member_after.created_at <= mintime:
@@ -91,14 +92,13 @@ async def on_member_update(member_before, member_after):
             await member_after.add_roles(role)
             return
 
+        log.debug("check if verfication roles")
+
         if guild_settings.verification_role_ID is None:
+            log.debug("1")
             await member_after.send(f"The verification role has not been set up in {member_after.guild.name}.")
             log.error("The guild does not have a verification role set!")
             return
-        role = member_after.guild.get_role(int(guild_settings.verification_role_ID))
-        await member_after.add_roles(role)
-
-        log.debug(f"User {member_after.name}#{member_after.discriminator} passed screening.")
 
         retry = True
         unique_ID = secrets.token_urlsafe(8)
