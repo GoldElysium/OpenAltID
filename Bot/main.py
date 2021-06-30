@@ -88,8 +88,13 @@ async def on_member_update(member_before, member_after):
                 await member_after.send(f"The verification role has not been set up in {member_after.guild.name}.")
                 log.error("The guild does not have a verification role set!")
                 return
+            log.debug("Giving the role due to age")
             role = member_after.guild.get_role(int(guild_settings.verification_role_ID))
-            await member_after.add_roles(role)
+            try:
+                await member_after.add_roles(role)
+            except Exception as err:
+                log.error(err)
+                await member_after.send(f"An error occured while giving you a role, please contact server admins for {member_after.guild.name}")
             return
 
         log.debug("check if verfication roles")
