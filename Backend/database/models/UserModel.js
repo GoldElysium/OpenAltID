@@ -1,12 +1,12 @@
-let mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-let connectionSchema = new mongoose.Schema({
+const connectionSchema = new mongoose.Schema({
     _id: String,
     type: String,
     createdAt: Date,
 });
 
-let userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     _id: String, // the discord id
     username: String,
     mfa_enabled: Boolean,

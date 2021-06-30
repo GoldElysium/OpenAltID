@@ -1,66 +1,59 @@
 const express = require('express');
-const axios = require('axios');
+const Redis = require('ioredis');
 const { UserModel } = require('../../database/models/UserModel');
-const { verificationModel } = require('../../database/models/VerificationDataModel');
-const { SocialMediaAccountsModel } = require('../../database/models/SocialMediaAccountsModel');
 const { verifyUser } = require('./UserFunctions');
 const { getAccountAges } = require('./UserFunctions');
 const { getUserConnectionIDs } = require('./UserFunctions');
 
-const Redis = require("ioredis");
-const { checkIfAccountExists } = require("./UserFunctions");
-const { logger } = require("../../logger");
+const { checkIfAccountExists } = require('./UserFunctions');
+const { logger } = require('../../logger');
 
 const redis = new Redis({
     port: 6379,
-    host: "Redis",
-})
+    host: 'Redis',
+});
 
-redis.on("ready", async ()=>{
-    logger.info("IOREDIS is ready!")
-    await redis.set("Test", "IOREDIS TEST: SUCCESS")
-    let response = await redis.get("Test")
-    logger.info(response)
-})
+redis.on('ready', async () => {
+    logger.info('IOREDIS is ready!');
+    await redis.set('Test', 'IOREDIS TEST: SUCCESS');
+    const response = await redis.get('Test');
+    logger.info(response);
+});
 
-redis.on("error", (error) => {
-    logger.error("IOREDIS ERROR - "+error)
-})
+redis.on('error', (error) => {
+    logger.error(`IOREDIS ERROR - ${error}`);
+});
 
-let router = express.Router();
+const router = express.Router();
 
 // This is just a synonym of auth/discord
-router.get('/login', async function (req, res) {
-    console.log("/login HOSTNAME:" + process.env.HOSTNAME)
-    res.redirect("http://localhost:8080" + '/auth/discord');
+router.get('/login', async (_, res) => {
+    console.log(`/login HOSTNAME:${process.env.HOSTNAME}`);
+    res.redirect('http://localhost:8080' + '/auth/discord');
 });
 
 // Just destroys the session and goes back /
-router.get('/logout', async function (req, res) {
-    req.session.destroy(function (err) {
-        return res.send("Logged out user.")
+router.get('/logout', async (req, res) => {
+    req.session.destroy(() => res.send('Logged out user.'));
+});
+
+router.get('/dashboard', async (req, res) => {
+    if (!req.user) {
+        return res.status(401).send({ message: 'Not logged in' });
+    }
+    return res.send({
+        avatar: req.user.avatar,
+        username: req.user.username,
+        verified: req.user.verified,
+        id: req.user._id,
     });
 });
 
-router.get('/dashboard', async function (req, res) {
-    if (!req.user) {
-        return res.status(401).send({ message: 'Not logged in' });
-    } else {
-        return res.send({
-            avatar: req.user.avatar,
-            username: req.user.username,
-            verified: req.user.verified,
-            id: req.user._id,
-        });
-    }
-});
-
-router.get('/is-logged-in', async function (req, res) {
+router.get('/is-logged-in', async (req, res) => {
     if (req.user) {
         return res.json({ logged_in: true });
-    } else {
-        return res.status(401).json({ message: 'Not logged in' });
     }
+    return res.status(401).json({ message: 'Not logged in' });
 });
 
 router.get('/verify-accounts/:identifier', async (req, res) => {
@@ -78,47 +71,46 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
     try {
         let accounts = await getUserConnectionIDs(req.user);
         // Check for alts, if one is found do not verify the user
-        let duplicateFound = await checkIfAccountExists(accounts);
+        const duplicateFound = await checkIfAccountExists(accounts);
         if (duplicateFound) {
             return res.json({
                 verified: false,
-                reason: "Alt account detected."
-            })
+                reason: 'Alt account detected.',
+            });
         }
         // Get the ages of the accounts
         accounts = await getAccountAges(accounts);
-        let redisValue = await redis.get("uuid:" + req.params.identifier)
+        let redisValue = await redis.get(`uuid:${req.params.identifier}`);
         if (!redisValue) {
             return res.json({
                 verified: false,
-                reason: "Invalid identifier."
-            })
+                reason: 'Invalid identifier.',
+            });
         }
-        let user_id
-        let guild_id
+        let userId;
+        let guildId;
 
         try {
-            redisValue = redisValue.split(":")
-            user_id = redisValue[0]
-            guild_id = redisValue[1]
+            redisValue = redisValue.split(':');
+            [userId, guildId] = redisValue;
         } catch (error) {
-            logger.error(error)
+            logger.error(error);
             return res.json({
                 verified: false,
-                reason: "Internal server error."
-            })
+                reason: 'Internal server error.',
+            });
         }
 
-        let verified = await verifyUser(accounts, guild_id, req.user);
+        const verified = await verifyUser(accounts, guildId, req.user);
 
-        let docu = new UserModel({
+        const docu = new UserModel({
             _id: req.user.id,
             username: req.user.username,
             mfa_enabled:
                 String(req.user.mfa_enabled).toLowerCase() === 'true',
-            premium_type: parseInt(req.user.premium_type),
+            premium_type: parseInt(req.user.premium_type, 10),
             verifiedEmail: req.user.verifiedEmail,
-            verified: verified,
+            verified,
             accessToken: req.user.accessToken,
             avatar: req.user.avatar,
             connection: [],
@@ -129,36 +121,31 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             docu,
             {
                 upsert: true,
-            }).exec();
+            },
+        ).exec();
 
-        let key = `complete:${user_id}:${guild_id}`
-        let value = "false"
-        if (verified) {
-            value = "true"
-        }
+        const key = `complete:${userId}:${guildId}`;
+        const value = verified ? 'true' : 'false';
 
-        await redis.set(key, value)
+        await redis.set(key, value);
 
         if (verified) {
             return res.json({
-                verified: verified,
-                reason: "You should be verified."
-            });
-        } else {
-            return res.json({
-                verified: verified,
-                reason: "Failed verification, make sure to connect accounts"
+                verified,
+                reason: 'You should be verified.',
             });
         }
-
-
+        return res.json({
+            verified,
+            reason: 'Failed verification, make sure to connect accounts',
+        });
     } catch (e) {
-        logger.error("Main try")
-        logger.error(e)
+        logger.error('Main try');
+        logger.error(e);
         return res.json({
             verified: false,
-            reason: "Internal server error.",
-        })
+            reason: 'Internal server error.',
+        });
     }
 });
 
