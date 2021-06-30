@@ -78,7 +78,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
     try {
         let accounts = await getUserConnectionIDs(req.user);
         // Check for alts, if one is found do not verify the user
-        let duplicateFound = checkIfAccountExists(accounts);
+        let duplicateFound = await checkIfAccountExists(accounts);
         if (duplicateFound) {
             return res.send({
                 verified: false,
@@ -87,9 +87,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         }
         // Get the ages of the accounts
         accounts = await getAccountAges(accounts);
-
         let redisValue = await redis.get("uuid:" + req.params.identifier)
-        logger.info(redisValue)
         if (!redisValue) {
             return res.send({
                 verified: false,
@@ -133,10 +131,6 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
                 upsert: true,
             }).exec();
 
-        logger.info("KEYS: " + await redis.keys("*"))
-        logger.info("IDENTIFIER: " + "uuid:" + req.params.identifier)
-        logger.info(redisValue)
-
         let key = `complete:${user_id}:${guild_id}`
         let value = "false"
         if (verified) {
@@ -145,11 +139,20 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
 
         await redis.set(key, value)
 
-        return res.send({
-            verified: verified,
-        });
+        if (verified) {
+            return res.send({
+                verified: verified,
+            });
+        } else {
+            return res.send({
+                verified: verified,
+                reason: "Failed verification, make sure to connect accounts"
+            });
+        }
+
 
     } catch (e) {
+        logger.error("Main try")
         logger.error(e)
         return res.send({
             verified: false,

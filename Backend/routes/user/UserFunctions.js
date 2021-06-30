@@ -5,10 +5,21 @@ const TwitterWrapper = require('twitter');
 const { google } = require('googleapis');
 const moment = require('moment');
 const axios = require('axios');
+const { logger } = require("../../logger");
 
 module.exports.checkIfAccountExists = async function checkIfAccountExists(accounts) {
     let dupFound = false
+    logger.info(`Length of accounts map: ${accounts.size}`)
+    if (accounts.size === 0) {
+        logger.info("returning")
+        return false
+    }
+    accounts.foreach((key, value) => {
+        logger.info(`${key} : ${value}`)
+    })
+    logger.info("NOT DONE")
     accounts.foreach(async (accountID, keyAccountType, map) => {
+        logger.info("Inside foreach in checkIfAccountExists!")
         let accountDoc = SocialMediaAccountsModel({
             account_type: keyAccountType,
             account_ID: accountID,
@@ -26,6 +37,7 @@ module.exports.checkIfAccountExists = async function checkIfAccountExists(accoun
             }
         }
     });
+    logger.info("DONE")
     return dupFound
 }
 

@@ -81,8 +81,8 @@ export default {
                 default : return "50%"
             }
         },
-        showAlertMsg () {
-            return this.alert
+        alertText () {
+            return this.alert_text
         }
     },
     methods: {
@@ -98,6 +98,7 @@ export default {
                     response = await response.json()
                     this.verified = response.verified
                     if (response.verified === false) {
+                        console.log(response)
                         await this.showAlert(response.reason)
                     }
                 } else {
