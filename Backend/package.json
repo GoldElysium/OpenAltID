@@ -30,20 +30,21 @@
     "passport-google-oauth2": "^0.2.0",
     "passport-oauth": "^1.0.0",
     "passport-twitch": "^1.0.3",
-    "passport-twitter": "^0.1.5",
+    "passport-twitter": "^1.0.4",
     "prom-client": "^13.1.0",
     "pug": "^3.0.2",
     "rascal": "^13.0.2",
     "redis": "^3.1.2",
     "snoowrap": "^1.23.0",
     "twitch": "^4.5.5",
-    "twitch-auth": "^4.6.0",
-    "twitter": "^1.7.1"
+    "twitch-auth": "^4.5.5",
+    "twitter": "^1.7.1",
+    "helmet": "^4.6.0",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "eslint": "^7.29.0",
     "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.23.4",
-    "winston": "^3.3.3"
+    "eslint-plugin-import": "^2.23.4"
   }
 }
