@@ -65,9 +65,7 @@ router.get('/is-logged-in', async function (req, res) {
 
 router.get('/verify-accounts/:identifier', async (req, res) => {
     if (!req.user) {
-        return res.status(401).send({
-            message: 'No user in session, you must login first.',
-        });
+        return res.status(401).send('No user in session, you must login first.');
     }
 
     // Avoid doing it again if they were verified
@@ -144,18 +142,18 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         if (verified) {
             value = "true"
         }
+
         await redis.set(key, value)
+
         return res.send({
             verified: verified,
         });
 
-
-
     } catch (e) {
         logger.error(e)
         return res.send({
-            verified: false
-            reason: "Internal server error."
+            verified: false,
+            reason: "Internal server error.",
         })
     }
 });
