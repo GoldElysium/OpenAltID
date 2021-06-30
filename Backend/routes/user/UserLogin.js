@@ -67,20 +67,46 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             verified: true,
         });
     }
-
+    let num = 0;
+    num += 1;
+    logger.info(num);
     try {
+        num += 1;
+        logger.info(num);
         let accounts = await getUserConnectionIDs(req.user);
         // Check for alts, if one is found do not verify the user
-        const duplicateFound = await checkIfAccountExists(accounts);
+        logger.info('checking if accounts exist');
+        let duplicateFound;
+        try {
+            duplicateFound = await checkIfAccountExists(req, accounts);
+        } catch (e) {
+            logger.error(`Failed to find duplicates: ${e}`);
+            return res.json({
+                verified: false,
+                reason: 'Internal server error.',
+            });
+        }
         if (duplicateFound) {
             return res.json({
                 verified: false,
                 reason: 'Alt account detected.',
             });
         }
-        // Get the ages of the accounts
-        accounts = await getAccountAges(accounts);
+        logger.info('get account ages');
+        try {
+            accounts = await getAccountAges(accounts);
+        } catch (e) {
+            logger.error(`Failed to get account ages: ${e}`);
+            return res.json({
+                verified: false,
+                reason: 'Internal server error.',
+            });
+        }
+        num += 1;
+        logger.info(num);
         let redisValue = await redis.get(`uuid:${req.params.identifier}`);
+        num += 1;
+        logger.info(num);
         if (!redisValue) {
             return res.json({
                 verified: false,
@@ -89,7 +115,8 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         }
         let userId;
         let guildId;
-
+        num += 1;
+        logger.info(num);
         try {
             redisValue = redisValue.split(':');
             [userId, guildId] = redisValue;
@@ -101,8 +128,12 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             });
         }
 
+        num += 1;
+        logger.info(num);
         const verified = await verifyUser(accounts, guildId, req.user);
 
+        num += 1;
+        logger.info(num);
         const docu = new UserModel({
             _id: req.user.id,
             username: req.user.username,
@@ -116,6 +147,8 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             connection: [],
         });
 
+        num += 1;
+        logger.info(num);
         await UserModel.findOneAndUpdate(
             { _id: req.user.id },
             docu,
@@ -124,17 +157,23 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             },
         ).exec();
 
+        num += 1;
+        logger.info(num);
         const key = `complete:${userId}:${guildId}`;
         const value = verified ? 'true' : 'false';
 
         await redis.set(key, value);
 
+        num += 1;
+        logger.info(num);
         if (verified) {
             return res.json({
                 verified,
                 reason: 'You should be verified.',
             });
         }
+        num += 1;
+        logger.info(num);
         return res.json({
             verified,
             reason: 'Failed verification, make sure to connect accounts',

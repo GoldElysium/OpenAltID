@@ -8,6 +8,30 @@ const axios = require('axios');
 const { logger } = require('../../logger');
 const { SocialMediaAccountsModel } = require('../../database/models/SocialMediaAccountsModel');
 
+async function checkAccounts(keyAccountType, accountID, req) {
+    logger.info('Inside foreach in checkIfAccountExists!');
+
+    const account = await SocialMediaAccountsModel.where({
+        account_type: keyAccountType,
+        account_ID: accountID,
+    }).findOne().exec();
+
+    if (account) {
+        logger.info(`${account.discord_ID} | ${req.user.id} | ${account}`);
+        if (account.discord_ID !== req.user.id) {
+            return true;
+        }
+    }
+    const docu = new SocialMediaAccountsModel({
+        account_type: keyAccountType,
+        account_ID: accountID,
+        discord_ID: req.user.id,
+    });
+
+    await docu.save();
+    return false;
+}
+
 module.exports.checkIfAccountExists = async (req, accounts) => {
     let dupFound = false;
     logger.info(`Length of accounts map: ${accounts.size}`);
@@ -15,24 +39,22 @@ module.exports.checkIfAccountExists = async (req, accounts) => {
         logger.info('returning');
         return false;
     }
-    accounts.foreach((key, value) => {
+    accounts.forEach((key, value) => {
         logger.info(`${key} : ${value}`);
     });
     logger.info('NOT DONE');
-    accounts.foreach(async (accountID, keyAccountType) => {
-        logger.info('Inside foreach in checkIfAccountExists!');
-
-        const account = await SocialMediaAccountsModel.where({
-            account_type: keyAccountType,
-            account_ID: accountID,
-        }).findOne().exec();
-
-        if (account) {
-            if (account.discord_ID !== req.user.id) {
-                dupFound = true;
-            }
-        }
+    let results = [];
+    accounts.forEach(async (accountID, keyAccountType) => {
+        results.push(checkAccounts(keyAccountType, accountID, req));
     });
+
+    results = await Promise.all(results);
+    results.forEach(((value) => {
+        if (value === true) {
+            dupFound = true;
+        }
+    }));
+
     logger.info('DONE');
     return dupFound;
 };
@@ -55,7 +77,11 @@ module.exports.getUserConnectionIDs = async (sessionUser) => {
             },
         },
     );
+    logger.info(resp.status);
+    logger.info(resp.statusText);
+    logger.info(resp.data);
 
+    logger.info('getting accounts');
     const accounts = new Map();
     const supportedAccountTypes = ['youtube', 'twitter', 'twitch', 'reddit'];
     resp.data.forEach((el) => {
@@ -66,6 +92,7 @@ module.exports.getUserConnectionIDs = async (sessionUser) => {
             accounts.set(el.type, el.id);
         }
     });
+    logger.info('Got accounts');
     return accounts;
 };
 

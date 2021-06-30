@@ -16,6 +16,7 @@ const helmet = require('helmet');
 const AuthRouter = require('./routes/auth/AuthRouter');
 const UserRouter = require('./routes/user/UserLogin');
 const { logger } = require('./logger');
+require('./database/Mongo')();
 
 // Create the express app
 const app = express();
@@ -79,7 +80,6 @@ app.listen(process.env.PORT || 8080, (err) => {
     if (err) {
         logger.error('An error occurred while starting the server.');
     } else {
-        const db = require('./database/Mongo')();
         logger.info(`Listening on port: ${process.env.PORT || 8080}`);
     }
 });
