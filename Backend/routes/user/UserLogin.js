@@ -45,7 +45,7 @@ router.get('/dashboard', async (req, res) => {
         avatar: req.user.avatar,
         username: req.user.username,
         verified: req.user.verified,
-        id: req.user._id,
+        id: req.user.id,
     });
 });
 

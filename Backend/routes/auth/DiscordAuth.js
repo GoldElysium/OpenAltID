@@ -6,7 +6,7 @@ const passport = require('passport');
 router.get('/', passport.authenticate('discord'));
 
 router.post('/callback', passport.authenticate('discord'), async (_, res) => {
-    res.json({ Success: true });
+    res.json({ success: true });
 });
 
 module.exports = router;
