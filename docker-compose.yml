@@ -9,24 +9,26 @@ services:
       - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
     volumes:
       - 'redis_data:/bitnami/redis/data'
-    networks: 
+    networks:
       - services
   backend:
     container_name: "BackendAPI"
-    ports: 
+    ports:
       - "8080:8080"
-    build: ./Backend
-    networks: 
+    image: omneex/api-openaltid
+    env_file:
+      - ./Backend/.env
+    networks:
       - services
   bot:
     container_name: "DiscordBot"
     build: ./Bot
-    networks: 
+    networks:
       - services
 
 volumes:
   redis_data:
     driver: local
 
-networks: 
-  services: 
+networks:
+  services:
