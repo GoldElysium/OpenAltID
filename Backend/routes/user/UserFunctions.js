@@ -6,8 +6,9 @@ const { google } = require('googleapis');
 const moment = require('moment');
 const axios = require('axios');
 const { logger } = require('../../logger');
+const { SocialMediaAccountsModel } = require('../../database/models/SocialMediaAccountsModel');
 
-module.exports.checkIfAccountExists = async (accounts) => {
+module.exports.checkIfAccountExists = async (req, accounts) => {
     let dupFound = false;
     logger.info(`Length of accounts map: ${accounts.size}`);
     if (accounts.size === 0) {
@@ -20,11 +21,6 @@ module.exports.checkIfAccountExists = async (accounts) => {
     logger.info('NOT DONE');
     accounts.foreach(async (accountID, keyAccountType) => {
         logger.info('Inside foreach in checkIfAccountExists!');
-        const accountDoc = SocialMediaAccountsModel({
-            account_type: keyAccountType,
-            account_ID: accountID,
-            discord_ID: req.user.id,
-        });
 
         const account = await SocialMediaAccountsModel.where({
             account_type: keyAccountType,
