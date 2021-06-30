@@ -16,10 +16,10 @@ module.exports = (passport) => {
                     _id: profile.id,
                     username: profile.username,
                     mfa_enabled:
-                        String(profile.mfa_enabled).toLowerCase() === 'true',
+                  String(profile.mfa_enabled).toLowerCase() === 'true',
                     premium_type: parseInt(profile.premium_type, 10),
                     verifiedEmail:
-                        String(profile.verified).toLowerCase() === 'true',
+                  String(profile.verified).toLowerCase() === 'true',
                     verified: false,
                     accessToken: profile.accessToken,
                     avatar: profile.avatar,

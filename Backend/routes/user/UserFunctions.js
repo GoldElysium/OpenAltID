@@ -61,7 +61,7 @@ module.exports.getUserConnectionIDs = async (sessionUser) => {
     resp.data.forEach((el) => {
         if (
             supportedAccountTypes.indexOf(el.type) !== -1
-            && el.verified === true
+          && el.verified === true
         ) {
             accounts.set(el.type, el.id);
         }

@@ -107,7 +107,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             _id: req.user.id,
             username: req.user.username,
             mfa_enabled:
-                String(req.user.mfa_enabled).toLowerCase() === 'true',
+              String(req.user.mfa_enabled).toLowerCase() === 'true',
             premium_type: parseInt(req.user.premium_type, 10),
             verifiedEmail: req.user.verifiedEmail,
             verified,
