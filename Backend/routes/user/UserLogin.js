@@ -90,7 +90,9 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
                 }).findOne().exec()
 
                 if (account) {
-                    if (account.discord_ID !@)
+                    if (account.discord_ID !== req.user.id) {
+                        res.status(500).send("Alt account detected");
+                    }
                 }
 
                 if (count>0){
