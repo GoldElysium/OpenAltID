@@ -5,6 +5,7 @@ const TwitterWrapper = require('twitter');
 const { google } = require('googleapis');
 const moment = require('moment');
 const axios = require('axios');
+const {UserModel} = require("../../database/models/UserModel");
 const { logger } = require('../../logger');
 const { SocialMediaAccountsModel } = require('../../database/models/SocialMediaAccountsModel');
 

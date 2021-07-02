@@ -7,10 +7,6 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan')('tiny');
 const cors = require('cors');
 const connectRedis = require('connect-redis');
-const promBundle = require('express-prom-bundle');
-
-const metricsMiddleware = promBundle({ includeMethod: true });
-
 const redis = require('redis');
 const helmet = require('helmet');
 const AuthRouter = require('./routes/auth/AuthRouter');
@@ -21,7 +17,6 @@ require('./database/Mongo')();
 // Create the express app
 const app = express();
 
-app.use(metricsMiddleware);
 app.use(helmet());
 app.use(morgan);
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -36,12 +31,13 @@ app.set('trust proxy', 1);
 const RedisStore = connectRedis(session);
 
 const redisClient = redis.createClient({
-    host: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT,
+    host: 'Redis',
+    port: 6379,
 });
 redisClient.on('error', (err) => {
     logger.error('Could not connect to Redis for session!');
     logger.error(err)
+    process.exit(0)
 });
 redisClient.on('connect', () => {
     logger.info('Connected to Redis for session!');
@@ -66,7 +62,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 require('./auth/PassportConfig')(passport);
-require('./auth/strategies/Discord')(passport);
+require('./auth/strategies/Discord').DiscordAuth(passport);
 
 // Define routes.
 app.use('/auth', AuthRouter);
