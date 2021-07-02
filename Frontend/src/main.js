@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import App from './App.vue'
-import vuetify from './plugins/vuetify';
 import store from './store'
 import router from './router'
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -13,7 +12,6 @@ library.add(faUserSecret)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 
 new Vue({
-  vuetify,
   store,
   router,
   render: h => h(App)

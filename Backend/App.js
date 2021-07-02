@@ -36,12 +36,12 @@ app.set('trust proxy', 1);
 const RedisStore = connectRedis(session);
 
 const redisClient = redis.createClient({
-    // Todo get the ip from env
-    host: 'Redis',
-    port: 6379,
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
 });
 redisClient.on('error', (err) => {
     logger.error('Could not connect to Redis for session!');
+    logger.error(err)
 });
 redisClient.on('connect', () => {
     logger.info('Connected to Redis for session!');
@@ -49,7 +49,7 @@ redisClient.on('connect', () => {
 
 app.use(
     session({
-        store: new RedisStore({ client: redisClient }),
+        store: new RedisStore({client: redisClient}),
         secret: process.env.SECRET,
         resave: true,
         saveUninitialized: true,

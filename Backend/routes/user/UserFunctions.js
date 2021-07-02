@@ -16,11 +16,30 @@ async function checkAccounts(keyAccountType, accountID, req) {
         account_ID: accountID,
     }).findOne().exec();
 
+    let altFound = false
     if (account) {
-        logger.info(`${account.discord_ID} | ${req.user.id} | ${account}`);
         if (account.discord_ID !== req.user.id) {
-            return true;
+            // If alt is found, mark the new one as an alt and list it's ID down in the older one
+            let newAccount = UserModel.findById(req.user.id).exec();
+            let oldAccount = UserModel.findById(account.discord_ID).exec();
+            [oldAccount, newAccount] = await Promise.all([oldAccount, newAccount])
+            let prom1;
+            if (!newAccount.alt) {
+                newAccount.alt = true;
+                prom1 = newAccount.save();
+            } else {
+                prom1 = new Promise((resolve) => {
+                    resolve(null)
+                })
+            }
+            oldAccount.alt_ids.push(req.user.id);
+            let prom2 = oldAccount.save();
+            await Promise.all([prom1, prom2]);
+            altFound = true;
         }
+    }
+    if (altFound) {
+        return true;
     }
     const docu = new SocialMediaAccountsModel({
         account_type: keyAccountType,
@@ -32,7 +51,13 @@ async function checkAccounts(keyAccountType, accountID, req) {
     return false;
 }
 
-module.exports.checkIfAccountExists = async (req, accounts) => {
+/**
+ * Takes a list of accounts and a request object and checks to see if the accounts have been seen before
+ * @param req
+ * @param accounts
+ * @returns {Promise<boolean>}
+ */
+module.exports.checkIfAccountsExists = async (req, accounts) => {
     let dupFound = false;
     logger.info(`Length of accounts map: ${accounts.size}`);
     if (accounts.size === 0) {
@@ -47,7 +72,6 @@ module.exports.checkIfAccountExists = async (req, accounts) => {
     accounts.forEach(async (accountID, keyAccountType) => {
         results.push(checkAccounts(keyAccountType, accountID, req));
     });
-
     results = await Promise.all(results);
     results.forEach(((value) => {
         if (value === true) {
@@ -87,7 +111,7 @@ module.exports.getUserConnectionIDs = async (sessionUser) => {
     resp.data.forEach((el) => {
         if (
             supportedAccountTypes.indexOf(el.type) !== -1
-          && el.verified === true
+            && el.verified === true
         ) {
             accounts.set(el.type, el.id);
         }
@@ -148,7 +172,7 @@ module.exports.getAccountAges = async (accounts) => {
             process.env.TWITCH_CLIENT_ID,
             process.env.TWITCH_CLIENT_SECRET,
         );
-        const twitchClient = new ApiClient({ authProvider });
+        const twitchClient = new ApiClient({authProvider});
         twitchPromise = twitchClient.helix.users.getUserById('62730467');
     }
 
