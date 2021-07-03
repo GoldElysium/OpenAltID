@@ -4,14 +4,13 @@
             <b-col>
                 <b-row>
                     <b-card class="align-items-center">
-                        <b-img src="../assets/OPEN.png" center></b-img>
                         <h1 class="co">
                             Hololive EN Fan Server Verificaiton
                         </h1>
                         <h2>
                             This site is dedicated to verifying users for the HEFS Discord server. You cant do anything without clicking a link from the bot first.
                         </h2>
-                        <b-button href="https://discord.com/channels/755525191727185921/832716172478251050/835406410984456202">Click here to join</b-button>
+                        <b-button href="https://discord.gg/HoloENFans">Click here to join</b-button>
                     </b-card>
                 </b-row>
             </b-col>
