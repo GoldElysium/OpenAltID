@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import discordloginbutton from "@/components/discordloginbutton";
+import discordloginbutton from "@/components/discordloginbutton.vue";
 export default {
     name: 'Verify',
     components: {
