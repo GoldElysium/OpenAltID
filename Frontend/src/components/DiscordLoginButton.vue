@@ -9,7 +9,7 @@
 
 <script>
 export default {
-    name: "DiscordLoginButton",
+    name: "discordloginbutton",
     methods: {
         login: async function () {
             if (!this.$store.getters.getLoggedIn) {
