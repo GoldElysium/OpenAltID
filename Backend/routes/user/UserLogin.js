@@ -5,8 +5,6 @@ const { UserModel } = require('../../database/models/UserModel');
 const { verifyUser } = require('./UserFunctions');
 const { getAccountAges } = require('./UserFunctions');
 const { getUserConnectionIDs } = require('./UserFunctions');
-
-const { checkIfAccountExists } = require('./UserFunctions');
 const { logger } = require('../../logger');
 
 const redis = new Redis({

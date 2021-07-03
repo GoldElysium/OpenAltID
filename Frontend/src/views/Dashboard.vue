@@ -114,6 +114,9 @@ export default {
                         }
                     } else {
                         await this.showAlert(response.statusText)
+                        if (response.data.alt) {
+                            this.alt = true
+                        }
                     }
                 } catch (error) {
                     console.error(error)

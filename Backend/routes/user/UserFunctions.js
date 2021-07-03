@@ -71,7 +71,7 @@ module.exports.checkIfAccountsExists = async (req, accounts) => {
     logger.info('NOT DONE');
     let results = [];
     accounts.forEach(async (accountID, keyAccountType) => {
-        results.push(checkAccounts(keyAccountType, accountID, req));
+        results.push(await checkAccounts(keyAccountType, accountID, req));
     });
     results = await Promise.all(results);
     results.forEach(((value) => {
