@@ -1,4 +1,3 @@
-![LOGO2](https://user-images.githubusercontent.com/51096852/124341613-d884b180-db7a-11eb-8975-ff942a837ae2.png)
 # OpenAltID 
 ## An open source alternative to other alt detection bots.
 ### Focus is on stability and performance, with more per server customization. The frontend is running VueJS (w/ Vuetify) and the backend is running Express (w/ PassportJS for auth). The bot is using Discord.py. Redis is used for none permenant storage and messaging while MongoDB handles the permenant database.
