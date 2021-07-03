@@ -36,7 +36,7 @@ def get_prefix(bot, message):
     return "$"
 
 
-bot = commands.Bot(description="Ironic Bot by Perfect_Irony#5196", command_prefix=get_prefix, pm_help=False,
+bot = commands.Bot(description="Open/Alt.ID", command_prefix=get_prefix, pm_help=False,
                    intents=intents)
 
 

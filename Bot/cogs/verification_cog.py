@@ -7,7 +7,6 @@ from discord.ext import tasks, commands
 import redis
 from loguru import logger as log
 from redis.exceptions import LockError
-
 from database.mongomanager import get_guild_info
 from database.redismanager import get_redis
 
@@ -20,6 +19,7 @@ async def initiate_verification(redisClient, member, guild_settings):
         log.error("The guild does not have a verification role set!")
         return False
     # check account age
+
     mintime = datetime.utcnow() - timedelta(days=guild_settings.verification_age)
     if member.created_at <= mintime:
         # Dont need to verify
@@ -31,6 +31,7 @@ async def initiate_verification(redisClient, member, guild_settings):
             await member.send(
                 f"An error occured while giving you a role, please contact server admins for {member.guild.name}")
         return False
+
     retry = True
     unique_ID = secrets.token_urlsafe(8)
     """
@@ -50,6 +51,7 @@ async def initiate_verification(redisClient, member, guild_settings):
             "An error occured while queuing your verification. Please try again later. If the problem persists "
             "contact server admins.")
     verify_link = f"{os.environ.get('FRONTEND_HOST')}/verify/{unique_ID}"
+    log.debug(4)
     if redisClient.get(f"uuid:{unique_ID}") == f"{member.id}:{member.guild.id}":
 
         await member.send(
@@ -77,11 +79,17 @@ class Verification(commands.Cog):
 
     @commands.command(name="verify")
     async def manual_verify(self, ctx):
-        guild_id = ctx.member.guild.id
-        guild_settings = await get_guild_info(guild_id)
-        await initiate_verification(self.redisClient, ctx.member, guild_settings)
         await ctx.message.add_reaction("✔")
-        await ctx.message.delete(delay=5)
+        guild_id = ctx.guild.id
+        log.debug(guild_id)
+        try:
+            guild_settings = await get_guild_info(guild_id)
+            await initiate_verification(self.redisClient, ctx.author, guild_settings)
+        except Exception as e:
+            bot_msg = await ctx.channel.send("An error occured while queuing verification.")
+            log.error(e)
+            await ctx.message.delete(delay=15)
+            await bot_msg.delete(delay=15)
 
     @tasks.loop(seconds=5.0)
     async def check_completed(self):
@@ -90,8 +98,8 @@ class Verification(commands.Cog):
             Format for completed verification keys is: complete:{userid}:{guildid}
             Value must be either 'true' or 'false'
             '''
-        for key in self.redisClient.scan_iter(f"{key_prefix}:*"):
-            try:
+        try:
+            for key in self.redisClient.scan_iter(f"{key_prefix}:*"):
                 with self.redisClient.lock("lock:" + key, blocking_timeout=5):
                     log.debug(f"Acquired lock for {key}.")
                     if self.redisClient.get(key) == "true":
@@ -117,11 +125,10 @@ class Verification(commands.Cog):
                         member = guild.get_member(int(user_id))
                         self.redisClient.delete(key)
                         await member.send(f"You did not pass verification for {guild.name}")
-
-            except LockError as e:
-                log.exception(f"Did not acquire lock for {key}. {e}")
-            except Exception as e:
-                log.error(f"Failed to get keys! {e}")
+        except LockError as e:
+            log.exception(f"Did not acquire lock for {key}. {e}")
+        except Exception as e:
+            log.error(f"Failed to get keys! {e}")
 
     @check_completed.before_loop
     async def before_printer(self):

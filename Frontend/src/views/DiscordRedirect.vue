@@ -6,22 +6,16 @@
 export default {
     name: "DiscordRedirect",
     mounted() {
-        console.log("Redirect Page: ")
-        console.log(this.$route)
-        console.log(this.$store.getters.getLoggedIn)
-
         if (this.$route.query.code && !this.$store.getters.getLoggedIn) {
             this.$store.dispatch('login', this.$route.query).then((success) => {
-                console.log("Success from the dispatch: " + success)
                 if (success) {
                     this.$router.push("/dashboard")
                 } else {
-                    console.log("FAILURE")
-                    this.$router.push("/dashboard")
+                    this.$router.push("/")
                 }
             })
         } else {
-            this.$router.push("/dashboard")
+            this.$router.push("/")
         }
     }
 }

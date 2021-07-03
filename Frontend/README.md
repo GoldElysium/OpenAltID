@@ -1,4 +1,4 @@
-# Frontend (built w/ VueJS)
+# newfrontend
 
 ## Project setup
 ```

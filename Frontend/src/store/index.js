@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import Cookies from 'js-cookie'
-
+import axios from "axios";
 
 Vue.use(Vuex)
 
@@ -14,67 +14,71 @@ export default new Vuex.Store({
         siteTitle: ""
     },
     mutations: {
-        setToken: (state, token, status) => {
+        setToken: (state, token) => {
             Cookies.set('token', token, {secure: true, sameSite: 'lax'})
-            state.logged_in = status
+            state.token = token
         },
         setLoggedin: (state, status) => {
-            console.log("Setting logged in to"+status)
             state.logged_in = status
         }
     },
     actions: {
         login({commit}, urlQuery) {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
                 let token
-                console.log(BACKEND_API_BASEURI + "/auth/discord/callback?code=" + urlQuery.code)
-                fetch(BACKEND_API_BASEURI + "/auth/discord/callback?code=" + urlQuery.code, {
-                    method: "post",
-                    credentials: "include",
-                    body: JSON.stringify({
-                        "urlQuery": urlQuery,
-                    })
-                }).then((response) => {
-                    console.log(response)
+                axios.post(`${BACKEND_API_BASEURI}/auth/discord/callback?code=${urlQuery.code}`,
+                    {
+                        body: JSON.stringify({
+                            "urlQuery": urlQuery,
+                        })
+                    }, {
+                        withCredentials: true
+                    }).then((response => {
                     if (response.status === 200) {
                         commit('setToken', token, true)
+                        commit('setLoggedin', true)
                         resolve(true)
                     } else {
                         commit('setToken', '', false)
                         resolve(false)
                     }
+                })).catch((error) => {
+                    console.error(error)
+                    reject(error)
                 })
             })
         },
         verifyLogin({commit}) {
-            return new Promise(resolve => {
-
+            return new Promise((resolve, reject) => {
                 if (!this.state.logged_in) {
-                    fetch(BACKEND_API_BASEURI + "/user/is-logged-in", {
-                        credentials: "include"
-                    }).then(response => response.json()).then(response_json => {
-                        console.log(response_json)
-                        if (response_json.logged_in === true) {
-                            commit('setLoggedin', true)
-                            resolve(true)
+                    axios.get(`${BACKEND_API_BASEURI}/user/is-logged-in`,
+                        {
+                            withCredentials: true
+                        }).then(response => {
+                        if (response.status === 200) {
+                            if (response.data.logged_in) {
+                                commit('setLoggedin', true)
+                                resolve(true)
+                            } else {
+                                commit('setLoggedin', false)
+                                resolve(false)
+                            }
                         } else {
                             commit('setLoggedin', false)
                             resolve(false)
                         }
-                    }).catch(error => {
-                        console.log(error)
+                    }).catch((error) => {
+                        console.error(error)
+                        reject(error)
                     })
-                } else {
-                    resolve(true)
                 }
             })
         }
     },
     modules: {},
     getters: {
-        getLoggedIn: state => {
-            console.log("Getting state: "+state.logged_in)
+        getLoggedIn: (state) => {
             return state.logged_in
         }
     }
-})
+});
