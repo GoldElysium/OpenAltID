@@ -72,7 +72,7 @@ class Management(commands.Cog):
 
     @commands.command(pass_context=True, name='setvonscreening')
     @commands.check(is_mod)
-    async def set_enabled(self, ctx, enabled: bool):
+    async def set_on_screening(self, ctx, enabled: bool):
         """Min account age in days"""
         error = await set_verify_on_screening(ctx.guild.id, enabled)
 

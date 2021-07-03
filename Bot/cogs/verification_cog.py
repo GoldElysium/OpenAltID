@@ -84,6 +84,7 @@ class Verification(commands.Cog):
         log.debug(guild_id)
         try:
             guild_settings = await get_guild_info(guild_id)
+            guild_settings.enabled = True # Always enable it here
             await initiate_verification(self.redisClient, ctx.author, guild_settings)
         except Exception as e:
             bot_msg = await ctx.channel.send("An error occured while queuing verification.")
