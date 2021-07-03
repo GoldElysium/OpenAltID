@@ -61,7 +61,7 @@ async def initiate_verification(redisClient, member, guild_settings, enabled):
             f"\nYouTube\nTwitter\nTwitch\nReddit "
         )
     else:
-        await member.send("An error occured while queuing your verification. Please try again later. If the "
+        await member.send("An error occured while queuing your verification. You may not have your DMs open. If the "
                           "problem persists contact server admins.")
     return True
 
