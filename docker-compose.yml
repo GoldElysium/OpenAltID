@@ -17,7 +17,7 @@ services:
     container_name: "BackendAPI"
     ports:
       - "8080:8080"
-    build: ./Backend
+    image: omneex/api-openaltid
     env_file:
       - ./Backend/.env
     networks:
