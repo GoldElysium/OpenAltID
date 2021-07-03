@@ -34,6 +34,7 @@ class Guilds(Document):
     prefix_string = StringField(default="$")
     verification_age = IntField(default=90)
     enabled = BooleanField(default=False)
+    verify_on_screening = BooleanField(default=True)
 
 
 class VerificationData(Document):
@@ -51,6 +52,17 @@ async def set_guild_verification_role(guild_ID, role_ID):
         return None
     except Exception as e:
         log.error(f"Could not add role [{role_ID}] to guild [{guild_ID}] {e}")
+        return e
+
+
+async def set_verify_on_screening(guild_ID, enabled: bool):
+    try:
+        guild = Guilds.objects.get(guild_ID=guild_ID)
+        guild.verify_on_screening = enabled
+        guild.save()
+        return None
+    except Exception as e:
+        log.error(f"Could not set verify_on_screening in guild [{guild_ID}] {e}")
         return e
 
 

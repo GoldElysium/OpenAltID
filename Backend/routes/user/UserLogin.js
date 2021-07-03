@@ -26,22 +26,27 @@ redis.on('error', (error) => {
 
 const router = express.Router();
 
-// This is just a synonym of auth/discord
+
+/**
+ * Login route, will just redirect to the internal auth route
+ */
 router.get('/login', async (_, res) => {
     console.log(`/login HOSTNAME:${process.env.HOSTNAME}`);
     res.redirect(`${process.env.HOSTNAME}/auth/discord`);
 });
 
-// Just destroys the session and goes back /
+/**
+ * Just destroys the session and goes back
+ */
 router.get('/logout', async (req, res) => {
     req.session.destroy(() => res.send('Logged out user.'));
 });
 
 router.get('/dashboard', async (req, res) => {
     if (!req.user) {
-        return res.status(401).send({ message: 'Not logged in' });
+        return res.status(401).send('Not logged in');
     }
-    return res.send({
+    return res.json({
         avatar: req.user.avatar,
         username: req.user.username,
         verified: req.user.verified,
@@ -51,9 +56,9 @@ router.get('/dashboard', async (req, res) => {
 
 router.get('/is-logged-in', async (req, res) => {
     if (req.user) {
-        return res.json({ logged_in: true });
+        return res.json({logged_in: true});
     }
-    return res.status(401).json({ message: 'Not logged in' });
+    return res.status(401).json({logged_in: false});
 });
 
 router.get('/verify-accounts/:identifier', async (req, res) => {
@@ -78,7 +83,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         logger.info('checking if accounts exist');
         let duplicateFound;
         try {
-            duplicateFound = await checkIfAccountExists(req, accounts);
+            duplicateFound = await checkIfAccountsExists(req, accounts);
         } catch (e) {
             logger.error(`Failed to find duplicates: ${e}`);
             return res.json({
@@ -138,7 +143,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             _id: req.user.id,
             username: req.user.username,
             mfa_enabled:
-              String(req.user.mfa_enabled).toLowerCase() === 'true',
+                String(req.user.mfa_enabled).toLowerCase() === 'true',
             premium_type: parseInt(req.user.premium_type, 10),
             verifiedEmail: req.user.verifiedEmail,
             verified,
@@ -150,7 +155,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         num += 1;
         logger.info(num);
         await UserModel.findOneAndUpdate(
-            { _id: req.user.id },
+            {_id: req.user.id},
             docu,
             {
                 upsert: true,

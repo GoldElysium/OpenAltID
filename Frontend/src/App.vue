@@ -1,45 +1,39 @@
 <template>
-    <v-app dark>
-        <v-app-bar app>
-            <v-app-bar-title>
-                HEFS Verification
-            </v-app-bar-title>
-            <v-spacer></v-spacer>
-            <v-toolbar-items class="align-center">
-                <DiscordLoginButton></DiscordLoginButton>
-                <div class="pa-2" v-if="currentPage === 'Dashboard' && !loggedInStatus">
-                    <v-btn
-                        disabled
-                        elevation="2"
-                        large
-                        raised
-                        to="Dashboard"
-                    >
-                        Dashboard
-                    </v-btn>
-                </div>
-                <div class="pa-2" v-else>
-                    <v-btn
-                            elevation="2"
-                            large
-                            raised
-                            to="Dashboard"
-                    >
-                        Dashboard
-                    </v-btn>
-                </div>
-            </v-toolbar-items>
-        </v-app-bar>
-        <v-main>
+
+    <div class="flex-fill">
+        <b-navbar toggleable="lg" type="dark" variant="info">
+            <b-navbar-brand href="/">HEFS Verification</b-navbar-brand>
+            <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
+            <b-collapse id="nav-collapse" is-nav>
+                <b-navbar-nav class="ml-auto">
+                    <b-nav-item-dropdown right>
+                        <template #button-content>
+                            USER
+                        </template>
+                        <b-dropdown-item href="/dashboard">DASHBOARD</b-dropdown-item>
+                        <b-dropdown-item class="mx-auto">
+                            <discordloginbutton></discordloginbutton>
+                        </b-dropdown-item>
+                    </b-nav-item-dropdown>
+                </b-navbar-nav>
+            </b-collapse>
+        </b-navbar>
+        <div class="vh-100">
             <router-view></router-view>
-        </v-main>
-        <v-footer>
-            <h5>Created by Irony4D</h5>
-        </v-footer>
-    </v-app>
+        </div>
+    </div>
 </template>
 
 <style lang="scss">
+@import "assets/custom-vars.scss";
+
+$enable-shadows: true;
+$body-bg: #2c3e50;
+
+@import '~bootstrap/scss/bootstrap.scss';
+@import '~bootstrap-vue/src/index.scss';
+
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -50,28 +44,23 @@
 
 #nav {
   padding: 30px;
+}
 
-  a {
-    font-weight: bold;
+#nav a {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+#nav a.router-link-exact-active {
+  color: #42b983;
+}
+root {
     color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
 }
 </style>
 <script>
-//import Home from "@/views/Home";
-import DiscordLoginButton from "@/components/DiscordLoginButton";
-
+import discordloginbutton from "@/components/discordloginbutton";
 export default {
-    data () {
-        return {
-            currentPage: this.$route.name,
-            loggedInStatus: this.$store.getters.getLoggedIn
-        }
-    },
-    components: {DiscordLoginButton},
+    components: {discordloginbutton}
 }
 </script>

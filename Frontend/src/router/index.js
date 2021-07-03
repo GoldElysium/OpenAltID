@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '@/views/Home.vue'
-import Verify from "@/views/Verify";
+import Home from '../views/Home.vue'
 import Dashboard from "@/views/Dashboard";
+import Verify from "@/views/Verify";
 import DiscordRedirect from "@/views/DiscordRedirect";
 import store from "@/store/index.js"
 
@@ -40,7 +40,7 @@ const routes = [
     path: '/dashboard',
     name: 'Dashboard',
     meta: {
-      requiresAuth: true
+      requiresAuth: false
     },
     component: Dashboard
   }
@@ -51,7 +51,6 @@ const router = new VueRouter({
   routes
 })
 router.beforeEach((to, from, next) => {
-
   if (to.matched.some(record => record.meta.requiresAuth)) {
     store.dispatch('verifyLogin').then(loggedin => {
       if (!loggedin) {

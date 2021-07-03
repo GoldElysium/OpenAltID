@@ -1,7 +1,7 @@
 const DiscordStrategy = require('passport-discord').Strategy;
 const { UserModel } = require('../../database/models/UserModel');
 
-module.exports = (passport) => {
+module.exports.DiscordAuth = (passport) => {
     passport.use(
         new DiscordStrategy(
             {
@@ -16,10 +16,10 @@ module.exports = (passport) => {
                     _id: profile.id,
                     username: profile.username,
                     mfa_enabled:
-                  String(profile.mfa_enabled).toLowerCase() === 'true',
+                        String(profile.mfa_enabled).toLowerCase() === 'true',
                     premium_type: parseInt(profile.premium_type, 10),
                     verifiedEmail:
-                  String(profile.verified).toLowerCase() === 'true',
+                        String(profile.verified).toLowerCase() === 'true',
                     verified: false,
                     accessToken: profile.accessToken,
                     avatar: profile.avatar,
@@ -27,7 +27,7 @@ module.exports = (passport) => {
                 });
 
                 UserModel.findOneAndUpdate(
-                    { _id: profile.id },
+                    {_id: profile.id},
                     docu,
                     {
                         upsert: true,

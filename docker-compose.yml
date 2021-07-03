@@ -9,13 +9,15 @@ services:
       - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
     volumes:
       - 'redis_data:/bitnami/redis/data'
+    ports:
+      - "6379:6379"
     networks:
       - services
   backend:
     container_name: "BackendAPI"
     ports:
       - "8080:8080"
-    image: omneex/api-openaltid
+    build: ./Backend
     env_file:
       - ./Backend/.env
     networks:
