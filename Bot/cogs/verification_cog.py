@@ -11,8 +11,8 @@ from database.mongomanager import get_guild_info
 from database.redismanager import get_redis
 
 
-async def initiate_verification(redisClient, member, guild_settings):
-    if not guild_settings.enabled:
+async def initiate_verification(redisClient, member, guild_settings, enabled):
+    if not enabled:
         return False
     if guild_settings.verification_role_ID is None:
         await member.send(f"The verification role has not been set up in {member.guild.name}.")
@@ -84,8 +84,8 @@ class Verification(commands.Cog):
         log.debug(guild_id)
         try:
             guild_settings = await get_guild_info(guild_id)
-            guild_settings.enabled = True # Always enable it here
-            await initiate_verification(self.redisClient, ctx.author, guild_settings)
+            # Always enable it here
+            await initiate_verification(self.redisClient, ctx.author, guild_settings, True)
         except Exception as e:
             bot_msg = await ctx.channel.send("An error occured while queuing verification.")
             log.error(e)

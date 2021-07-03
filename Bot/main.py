@@ -63,7 +63,7 @@ async def on_member_update(member_before, member_after):
     guild_settings = await get_guild_info(guild_id)
     if guild_settings.verify_on_screening:
         if member_before.pending is True and member_after.pending is False:
-            await initiate_verification(redisClient, member_after, guild_settings)
+            await initiate_verification(redisClient, member_after, guild_settings, guild_settings.enabled)
 
 
 @bot.event
@@ -79,7 +79,7 @@ async def on_member_join(member):
     guild_id = member.guild.id
     guild_settings = await get_guild_info(guild_id)
     if not guild_settings.verify_on_screening:
-        await initiate_verification(redisClient, member, guild_settings)
+        await initiate_verification(redisClient, member, guild_settings, guild_settings.enabled)
 
 
 def run_client():
