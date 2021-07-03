@@ -79,13 +79,17 @@ class Verification(commands.Cog):
 
     @commands.command(name="verify")
     async def manual_verify(self, ctx):
-        await ctx.message.add_reaction("✔")
+        await ctx.message.add_reaction("✅")
         guild_id = ctx.guild.id
         log.debug(guild_id)
         try:
             guild_settings = await get_guild_info(guild_id)
             # Always enable it here
-            await initiate_verification(self.redisClient, ctx.author, guild_settings, True)
+            ctx.message.delete(delay=5)
+            queued = await initiate_verification(self.redisClient, ctx.author, guild_settings, True)
+            if queued:
+                bot_msg = await ctx.channel.send("A verification link has been sent!")
+                await bot_msg.delete(delay=15)
         except Exception as e:
             bot_msg = await ctx.channel.send("An error occured while queuing verification.")
             log.error(e)
