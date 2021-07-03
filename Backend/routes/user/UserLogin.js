@@ -1,5 +1,6 @@
 const express = require('express');
 const Redis = require('ioredis');
+const {checkIfAccountsExists} = require("./UserFunctions");
 const { UserModel } = require('../../database/models/UserModel');
 const { verifyUser } = require('./UserFunctions');
 const { getAccountAges } = require('./UserFunctions');
@@ -130,6 +131,13 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             return res.json({
                 verified: false,
                 reason: 'Internal server error.',
+            });
+        }
+
+        if (userId !== req.user.id) {
+            return res.json({
+                verified: false,
+                reason: 'User mismatch!',
             });
         }
 
