@@ -12,7 +12,7 @@
                         </template>
                         <b-dropdown-item href="/dashboard">DASHBOARD</b-dropdown-item>
                         <b-dropdown-item class="mx-auto">
-                            <discordloginbutton></discordloginbutton>
+                            <LoginButton></LoginButton>
                         </b-dropdown-item>
                     </b-nav-item-dropdown>
                 </b-navbar-nav>
@@ -59,8 +59,8 @@ root {
 }
 </style>
 <script>
-import discordloginbutton from "@/components/discordloginbutton.vue";
+import LoginButton from "@/components/LoginButton.vue";
 export default {
-    components: {discordloginbutton}
+    components: {LoginButton}
 }
 </script>

@@ -8,7 +8,7 @@
                     You must login first.
                 </b-card-header>
                 <h3>Click the button below to login with your Discord account.</h3>
-                <discordloginbutton></discordloginbutton>
+                <LoginButton></LoginButton>
             </b-card>
             <b-jumbotron v-else>
                 <template #lead>YOU SHOULD BE REDIRECTED!</template>
@@ -17,11 +17,11 @@
 </template>
 
 <script>
-import discordloginbutton from "@/components/discordloginbutton.vue";
+import LoginButton from "@/components/LoginButton.vue";
 export default {
     name: 'Verify',
     components: {
-        discordloginbutton
+        LoginButton
     },
     mounted() {
         this.$cookies.set("identifier", this.$route.params.identifier, "1h")
