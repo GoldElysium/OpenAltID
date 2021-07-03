@@ -59,7 +59,7 @@ root {
 }
 </style>
 <script>
-import discordloginbutton from "@/components/discordloginbutton.vue";
+import discordloginbutton from "components/discordloginbutton.vue";
 export default {
     components: {discordloginbutton}
 }
