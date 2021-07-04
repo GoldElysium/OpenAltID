@@ -3,6 +3,7 @@ import secrets
 import time
 from datetime import datetime, timedelta
 
+from discord import Forbidden
 from discord.ext import tasks, commands
 import redis
 from loguru import logger as log
@@ -13,12 +14,11 @@ from database.redismanager import get_redis
 
 async def initiate_verification(redisClient, member, guild_settings, enabled):
     if not enabled:
-        return False
+        return 'Not Enabled.'
     if guild_settings.verification_role_ID is None:
         await member.send(f"The verification role has not been set up in {member.guild.name}.")
         log.error("The guild does not have a verification role set!")
-        return False
-    # check account age
+        return 'No verification role.'
 
     mintime = datetime.utcnow() - timedelta(days=guild_settings.verification_age)
     if member.created_at <= mintime:
@@ -26,10 +26,11 @@ async def initiate_verification(redisClient, member, guild_settings, enabled):
         role = member.guild.get_role(int(guild_settings.verification_role_ID))
         try:
             await member.add_roles(role)
+            await member.send()
         except Exception as err:
             log.error(err)
             await member.send(
-                f"An error occured while giving you a role, please contact server admins for {member.guild.name}")
+                f"An error occured while giving you the verification role, please contact server admins for {member.guild.name}")
         return False
 
     retry = True
@@ -47,23 +48,24 @@ async def initiate_verification(redisClient, member, guild_settings, enabled):
                 unique_ID = secrets.token_urlsafe(8)
     except Exception as err:
         log.error(err)
-        await member.send(
-            "An error occured while queuing your verification. Please try again later. If the problem persists "
-            "contact server admins.")
-    verify_link = f"{os.environ.get('FRONTEND_HOST')}/verify/{unique_ID}"
-    log.debug(4)
-    if redisClient.get(f"uuid:{unique_ID}") == f"{member.id}:{member.guild.id}":
+        await member.send("Internal server error while adding verification to redis queue.")
+        return "Internal Redis error"
 
-        await member.send(
-            f"Thank you for joining! __You must connect social media accounts to your Discord first__, then go to "
-            f"this link to verify: {verify_link}. The link will be valid for 1hr, "
-            f"after which you will need to request a new one.\nSupported account types: "
-            f"\nYouTube\nTwitter\nTwitch\nReddit "
-        )
+    verify_link = f"{os.environ.get('FRONTEND_HOST')}/verify/{unique_ID}"
+    if redisClient.get(f"uuid:{unique_ID}") == f"{member.id}:{member.guild.id}":
+        try:
+            await member.send(
+                f"Thank you for joining! __You must connect social media accounts to your Discord first__, then go to "
+                f"this link to verify: {verify_link}. The link will be valid for 1hr, "
+                f"after which you will need to request a new one.\nSupported account types: "
+                f"\nYouTube\nTwitter\nTwitch\nReddit "
+            )
+            return True
+        except Forbidden as e:
+            return "DMs are not open, please allow DMs and try again."
     else:
-        await member.send("An error occured while queuing your verification. You may not have your DMs open. If the "
-                          "problem persists contact server admins.")
-    return True
+        await member.send("Internal server error while adding verification to redis queue.")
+        return "Internal Redis error"
 
 
 class Verification(commands.Cog):
@@ -85,16 +87,14 @@ class Verification(commands.Cog):
         try:
             guild_settings = await get_guild_info(guild_id)
             # Always enable it here
-            ctx.message.delete(delay=5)
             queued = await initiate_verification(self.redisClient, ctx.author, guild_settings, True)
-            if queued:
+            if queued is True:
                 bot_msg = await ctx.channel.send("A verification link has been sent!")
-                await bot_msg.delete(delay=15)
+            else:
+                bot_msg = await ctx.channel.send(f"Something went wrong: {queued}")
         except Exception as e:
-            bot_msg = await ctx.channel.send("An error occured while queuing verification.")
+            bot_msg = await ctx.channel.send(f"An error occured while queuing verification: {e}")
             log.error(e)
-            await ctx.message.delete(delay=15)
-            await bot_msg.delete(delay=15)
 
     @tasks.loop(seconds=5.0)
     async def check_completed(self):
@@ -122,6 +122,11 @@ class Verification(commands.Cog):
                         await member.add_roles(role)
                         self.redisClient.delete(key)
                         await member.send(f"You have been verified in {guild.name}")
+                        log.info(f"User: {user_id} was verified in {guild_id}")
+                        if guild_settings.verification_logs_channel_ID \
+                                and guild_settings.verification_logs_channel_ID != 0:
+                            channel = self.bot.get_channel(guild_settings.verification_logs_channel_ID)
+                            channel.send(f"<@{user_id}> was verified.")
                     else:
                         key_split = key.split(':')
                         user_id = key_split[1]
@@ -130,6 +135,11 @@ class Verification(commands.Cog):
                         member = guild.get_member(int(user_id))
                         self.redisClient.delete(key)
                         await member.send(f"You did not pass verification for {guild.name}")
+                        log.info(f"User: {user_id} was NOT verified in {guild_id}")
+                        if guild_settings.verification_logs_channel_ID \
+                                and guild_settings.verification_logs_channel_ID != 0:
+                            channel = self.bot.get_channel(guild_settings.verification_logs_channel_ID)
+                            channel.send(f"<@{user_id}> failed to pass verification.")
         except LockError as e:
             log.exception(f"Did not acquire lock for {key}. {e}")
         except Exception as e:

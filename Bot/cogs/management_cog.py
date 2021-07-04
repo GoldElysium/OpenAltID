@@ -7,6 +7,8 @@ from database.mongomanager import set_guild_verification_role, get_guild_info, s
     set_guild_verification_age, set_guild_enabled, set_verify_on_screening
 from loguru import logger as log
 
+from Bot.database.mongomanager import set_guild_log_channel
+
 
 class Management(commands.Cog):
     def __init__(self, bot):
@@ -27,6 +29,28 @@ class Management(commands.Cog):
             await ctx.send(f"Verification role set to `{role.name}`")
         else:
             log.error(f"Error while adding the role [{role.id}] in guild [{ctx.guild}]. {error}")
+            await ctx.send(f"Internal error while setting the role.")
+
+    @commands.command(pass_context=True, name='setlogs')
+    @commands.check(is_mod)
+    async def set_logs(self, ctx, channel_id: int):
+        """Set the verification channel, use 0 to disable"""
+
+        if channel_id == 0:
+            error = await set_guild_log_channel(ctx.guild.id, str(0))
+        else:
+            log_channel = ctx.guild.get_channel(channel_id)
+
+            if log_channel is None:
+                await ctx.send("That channel does not exist.")
+                return
+
+            error = await set_guild_log_channel(ctx.guild.id, str(log_channel.id))
+
+        if error is None:
+            await ctx.send(f"Verification role set to `{log_channel.name}`")
+        else:
+            log.error(f"Error while adding the role [{log_channel.id}] in guild [{ctx.guild}]. {error}")
             await ctx.send(f"Internal error while setting the role.")
 
     @commands.command(pass_context=True, name='setmrole')

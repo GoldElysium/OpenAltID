@@ -35,6 +35,7 @@ class Guilds(Document):
     verification_age = IntField(default=90)
     enabled = BooleanField(default=False)
     verify_on_screening = BooleanField(default=True)
+    verification_logs_channel_ID = StringField()
 
 
 class VerificationData(Document):
@@ -74,6 +75,17 @@ async def set_guild_mod_role(guild_ID, role_ID):
         return None
     except Exception as e:
         log.error(f"Could not add role [{role_ID}] to guild [{guild_ID}] {e}")
+        return e
+
+
+async def set_guild_log_channel(guild_ID, channel_id):
+    try:
+        guild = Guilds.objects.get(guild_ID=guild_ID)
+        guild.verification_logs_channel_ID = channel_id
+        guild.save()
+        return None
+    except Exception as e:
+        log.error(f"Could not add log channel [{channel_id}] to guild [{guild_ID}] {e}")
         return e
 
 
