@@ -7,7 +7,7 @@ from database.mongomanager import set_guild_verification_role, get_guild_info, s
     set_guild_verification_age, set_guild_enabled, set_verify_on_screening
 from loguru import logger as log
 
-from Bot.database.mongomanager import set_guild_log_channel
+from database.mongomanager import set_guild_log_channel
 
 
 class Management(commands.Cog):
