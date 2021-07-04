@@ -159,7 +159,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         ).exec();
 
         const key = `complete:${userId}:${guildId}`;
-        const value = verified ? `true:${verificationObj.score}:${verificationObj.minscore}` : `false:${verificationObj.score}:${verificationObj.minscore}`;
+        const value = verified ? `true:${verificationObj.score}:${verificationObj.minscore}` : `false:${Math.round(verificationObj.score)}:${verificationObj.minscore}`;
 
         await redis.set(key, value);
         if (verified) {
