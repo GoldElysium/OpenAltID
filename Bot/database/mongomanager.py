@@ -35,7 +35,7 @@ class Guilds(Document):
     verification_age = IntField(default=90)
     enabled = BooleanField(default=False)
     verify_on_screening = BooleanField(default=True)
-    verification_logs_channel_ID = StringField()
+    verification_logs_channel_ID = StringField(default=0)
 
 
 class VerificationData(Document):
@@ -81,7 +81,7 @@ async def set_guild_mod_role(guild_ID, role_ID):
 async def set_guild_log_channel(guild_ID, channel_id):
     try:
         guild = Guilds.objects.get(guild_ID=guild_ID)
-        guild.verification_logs_channel_ID = channel_id
+        guild.verification_logs_channel_ID = int(channel_id)
         guild.save()
         return None
     except Exception as e:
