@@ -109,7 +109,7 @@ export default {
                         this.verified = response.data.verified
                         if (this.verified === false) {
                             this.warningType = "danger"
-                            this.alert_text = "You could not be verified!"
+                            this.alert_text = response.data.reason
                             this.alert = 15
                         }
                     } else {

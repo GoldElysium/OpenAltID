@@ -17,7 +17,6 @@ async function checkAccounts(keyAccountType, accountID, req) {
         account_ID: accountID,
     }).findOne().exec();
 
-    let altFound = false
     if (account) {
         if (account.discord_ID !== req.user.id) {
             // If alt is found, mark the new one as an alt and list it's ID down in the older one
@@ -36,11 +35,10 @@ async function checkAccounts(keyAccountType, accountID, req) {
             oldAccount.alt_ids.push(req.user.id);
             let prom2 = oldAccount.save();
             await Promise.all([prom1, prom2]);
-            altFound = true;
+            return true;
+        } else {
+            return false;
         }
-    }
-    if (altFound) {
-        return true;
     }
     const docu = new SocialMediaAccountsModel({
         account_type: keyAccountType,
@@ -60,15 +58,12 @@ async function checkAccounts(keyAccountType, accountID, req) {
  */
 module.exports.checkIfAccountsExists = async (req, accounts) => {
     let dupFound = false;
-    logger.info(`Length of accounts map: ${accounts.size}`);
     if (accounts.size === 0) {
-        logger.info('returning');
         return false;
     }
     accounts.forEach((key, value) => {
         logger.info(`${key} : ${value}`);
     });
-    logger.info('NOT DONE');
     let results = [];
     accounts.forEach(async (accountID, keyAccountType) => {
         results.push(await checkAccounts(keyAccountType, accountID, req));
@@ -79,8 +74,6 @@ module.exports.checkIfAccountsExists = async (req, accounts) => {
             dupFound = true;
         }
     }));
-
-    logger.info('DONE');
     return dupFound;
 };
 
@@ -245,7 +238,7 @@ module.exports.getAccountAges = async (accounts) => {
  * The verification algorithm
  *
  * @param accounts List of accounts and creation dates
- * @param serverID ID of the server being verified in
+ * @param _ ID of the server being verified in
  * @param user the user object
  * @return {Promise<boolean>}
  * @see UserModel
@@ -278,5 +271,11 @@ module.exports.verifyUser = async (accounts, _, user) => {
     if (user.premium_type) {
         score += user.premium_type * 11;
     }
-    return score >= minscore;
+
+    let verificationObj = {
+        verified: score >= minscore,
+        score: score,
+        minscore: minscore,
+    }
+    return verificationObj;
 };

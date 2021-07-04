@@ -107,10 +107,16 @@ class Verification(commands.Cog):
             for key in self.redisClient.scan_iter(f"{key_prefix}:*"):
                 with self.redisClient.lock("lock:" + key, blocking_timeout=5):
                     log.debug(f"Acquired lock for {key}.")
-                    if self.redisClient.get(key) == "true":
+                    value = self.redisClient.get(key)
+                    if value.startswith("true"):
                         key_split = key.split(':')
                         user_id = key_split[1]
                         guild_id = key_split[2]
+
+                        value_split = value.split(':')
+                        score = value_split[1]
+                        minscore = value_split[2]
+
                         guild = self.bot.get_guild(int(guild_id))
                         member = guild.get_member(int(user_id))
                         guild_settings = await get_guild_info(guild_id)
@@ -122,22 +128,43 @@ class Verification(commands.Cog):
                         await member.add_roles(role)
                         self.redisClient.delete(key)
                         await member.send(f"You have been verified in {guild.name}")
-                        log.info(f"User: {user_id} was verified in {guild_id}")
+                        log.info(f"User: {user_id} was verified in {guild_id}  Score: {score}/{minscore}")
                         if guild_settings.verification_logs_channel_ID != 0:
                             channel = self.bot.get_channel(int(guild_settings.verification_logs_channel_ID))
-                            await channel.send(f"<@{user_id}> was verified.")
-                    else:
+                            await channel.send(f"<@{user_id}> was verified.  Score: {score}/{minscore}")
+                    elif value.startswith("error"):
                         key_split = key.split(':')
                         user_id = key_split[1]
                         guild_id = key_split[2]
+
+                        value_split = value.split(':')
+                        reason = value_split[1]
+
                         guild = self.bot.get_guild(int(guild_id))
                         member = guild.get_member(int(user_id))
                         self.redisClient.delete(key)
                         await member.send(f"You did not pass verification for {guild.name}")
-                        log.info(f"User: {user_id} was NOT verified in {guild_id}")
+                        log.info(f"User: {user_id} was NOT verified in {guild_id} Reason: {reason}")
                         if guild_settings.verification_logs_channel_ID != 0:
                             channel = self.bot.get_channel(int(guild_settings.verification_logs_channel_ID))
-                            await channel.send(f"<@{user_id}> failed to pass verification.")
+                            await channel.send(f"<@{user_id}> failed to pass verification.  Reason: {reason}")
+                    else:
+                        key_split = key.split(':')
+                        user_id = key_split[1]
+                        guild_id = key_split[2]
+
+                        value_split = value.split(':')
+                        score = value_split[1]
+                        minscore = value_split[2]
+
+                        guild = self.bot.get_guild(int(guild_id))
+                        member = guild.get_member(int(user_id))
+                        self.redisClient.delete(key)
+                        await member.send(f"You did not pass verification for {guild.name}")
+                        log.info(f"User: {user_id} was NOT verified in {guild_id} Score: {score}/{minscore}")
+                        if guild_settings.verification_logs_channel_ID != 0:
+                            channel = self.bot.get_channel(int(guild_settings.verification_logs_channel_ID))
+                            await channel.send(f"<@{user_id}> failed to pass verification.  Score: {score}/{minscore}")
         except LockError as e:
             log.exception(f"Did not acquire lock for {key}. {e}")
         except Exception as e:
