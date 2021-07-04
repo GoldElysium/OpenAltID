@@ -125,7 +125,7 @@ class Verification(commands.Cog):
                         log.info(f"User: {user_id} was verified in {guild_id}")
                         if guild_settings.verification_logs_channel_ID != 0:
                             channel = self.bot.get_channel(int(guild_settings.verification_logs_channel_ID))
-                            channel.send(f"<@{user_id}> was verified.")
+                            await channel.send(f"<@{user_id}> was verified.")
                     else:
                         key_split = key.split(':')
                         user_id = key_split[1]
@@ -137,7 +137,7 @@ class Verification(commands.Cog):
                         log.info(f"User: {user_id} was NOT verified in {guild_id}")
                         if guild_settings.verification_logs_channel_ID != 0:
                             channel = self.bot.get_channel(int(guild_settings.verification_logs_channel_ID))
-                            channel.send(f"<@{user_id}> failed to pass verification.")
+                            await channel.send(f"<@{user_id}> failed to pass verification.")
         except LockError as e:
             log.exception(f"Did not acquire lock for {key}. {e}")
         except Exception as e:
