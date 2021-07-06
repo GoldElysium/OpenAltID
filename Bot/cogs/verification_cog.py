@@ -1,6 +1,7 @@
 import os
 import secrets
 import time
+from asyncio import sleep
 from datetime import datetime, timedelta
 
 from discord import Forbidden
@@ -91,12 +92,11 @@ class Verification(commands.Cog):
                 await ctx.message.add_reaction("✅")
             else:
                 bot_msg = await ctx.channel.send(f"Something went wrong: {queued}")
-                bot_msg.delete(delay=60)
 
-            ctx.message.delete(delay=60)
+            await ctx.message.delete(delay=20)
         except Exception as e:
             bot_msg = await ctx.channel.send(f"An error occured while queuing verification: {e}")
-            bot_msg.delete(delay=60)
+            await bot_msg.delete(delay=20)
             log.error(e)
 
     @tasks.loop(seconds=5.0)
