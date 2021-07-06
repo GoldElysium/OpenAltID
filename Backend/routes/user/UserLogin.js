@@ -73,20 +73,36 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
     }
 
     try {
-        let redisValue = await redis.get(`uuid:${req.params.identifier}`);
-
-        if (!redisValue) {
+        let redisValue
+        try {
+            redisValue = await redis.get(`uuid:${req.params.identifier}`);
+            if (!redisValue) {
+                return res.json({
+                    verified: false,
+                    reason: 'Internal server error.',
+                });
+            }
+        } catch (e) {
+            logger.warning(`Could not retrieve verification info from Redis ${e}`)
             return res.json({
                 verified: false,
-                reason: 'Invalid identifier.',
+                reason: 'Internal server error.',
             });
         }
+
         let userId;
         let guildId;
 
         try {
             redisValue = redisValue.split(':');
             [userId, guildId] = redisValue;
+
+            if (userId !== req.user.id) {
+                return res.json({
+                    verified: false,
+                    reason: 'User mismatch.',
+                });
+            }
         } catch (error) {
             logger.error(error);
             return res.json({
@@ -95,47 +111,75 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             });
         }
 
-        let accounts = await getUserConnectionIDs(req.user);
-        // Check for alts, if one is found do not verify the user
-        logger.info('checking if accounts exist');
+
+        let accounts
+        try {
+            accounts = await getUserConnectionIDs(req.user);
+        } catch (e) {
+            logger.error(`Error while retrieving connections: ${e}`);
+
+            const key = `complete:${userId}:${guildId}`;
+            const value = 'error:Error while verifying user, failed to retrieve connections.';
+
+            await redis.set(key, value);
+
+            return res.json({
+                verified: false,
+                reason: 'Could not retrieve connections.',
+            });
+        }
+
         let duplicateFound;
         try {
             duplicateFound = await checkIfAccountsExists(req, accounts);
         } catch (e) {
             logger.error(`Error while finding duplicates: ${e}`);
+
+            const key = `complete:${userId}:${guildId}`;
+            const value = 'error:Error while verifying user, failed while looking for alts.';
+
+            await redis.set(key, value);
+
             return res.json({
                 verified: false,
                 reason: 'Internal server error.',
             });
         }
-        if (duplicateFound) {
-            const key = `complete:${userId}:${guildId}`;
-            const value = 'error:Alt account detected (same social media account found from a different Discord account';
 
-            await redis.set(key, value);
-            return res.json({
-                verified: false,
-                reason: 'Alt account detected.',
-            });
+        if (duplicateFound) {
+            try {
+                const key = `complete:${userId}:${guildId}`;
+                const value = 'error:Alt account detected (same social media account found from a different Discord account)';
+
+                await redis.set(key, value);
+                return res.json({
+                    verified: false,
+                    reason: 'Alt account detected.',
+                });
+            } catch (e) {
+                logger.error(`Could not set the redis value for alt detectted: ${e}`)
+            }
         }
+
         try {
             accounts = await getAccountAges(accounts);
         } catch (e) {
             logger.error(`Failed to get account ages: ${e}`);
+
+            const key = `complete:${userId}:${guildId}`;
+            const value = 'error:Error while verifying user, could not retrieve accounts';
+
+            await redis.set(key, value);
+
             return res.json({
                 verified: false,
                 reason: 'Internal server error.',
             });
-        }
 
-        if (userId !== req.user.id) {
-            return res.json({
-                verified: false,
-                reason: 'User mismatch!',
-            });
         }
 
         const verificationObj = await verifyUser(accounts, guildId, req.user);
+
         const verified = verificationObj.verified;
         const docu = new UserModel({
             _id: req.user.id,
@@ -145,7 +189,6 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             premium_type: parseInt(req.user.premium_type, 10),
             verifiedEmail: req.user.verifiedEmail,
             verified,
-            accessToken: req.user.accessToken,
             avatar: req.user.avatar,
             connection: [],
         });
@@ -159,19 +202,23 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         ).exec();
 
         const key = `complete:${userId}:${guildId}`;
-        const value = verified ? `true:${verificationObj.score}:${verificationObj.minscore}` : `false:${Math.round(verificationObj.score)}:${verificationObj.minscore}`;
-
-        await redis.set(key, value);
-        if (verified) {
+        let value;
+        if (verified === true) {
+            value = `true:${Math.round(verificationObj.score)}:${verificationObj.minscore}`
+            await redis.set(key, value);
             return res.json({
                 verified,
                 reason: 'You should be verified.',
             });
+        } else {
+            value =`false:${Math.round(verificationObj.score)}:${verificationObj.minscore}`
+            await redis.set(key, value);
+            return res.json({
+                verified,
+                reason: 'Failed verification, make sure to connect accounts',
+            });
         }
-        return res.json({
-            verified,
-            reason: 'Failed verification, make sure to connect accounts',
-        });
+
     } catch (e) {
         logger.error('Main try');
         logger.error(e);

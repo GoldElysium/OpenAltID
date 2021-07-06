@@ -240,7 +240,7 @@ module.exports.getAccountAges = async (accounts) => {
  * @param accounts List of accounts and creation dates
  * @param _ ID of the server being verified in
  * @param user the user object
- * @return {Promise<boolean>}
+ * @return {Promise<{score: number, minscore: number, verified: boolean}>}
  * @see UserModel
  */
 module.exports.verifyUser = async (accounts, _, user) => {
@@ -272,10 +272,9 @@ module.exports.verifyUser = async (accounts, _, user) => {
         score += user.premium_type * 11;
     }
 
-    let verificationObj = {
+    return {
         verified: score >= minscore,
         score: score,
         minscore: minscore,
-    }
-    return verificationObj;
+    };
 };

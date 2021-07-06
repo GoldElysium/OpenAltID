@@ -119,13 +119,16 @@ class Verification(commands.Cog):
 
                         guild = self.bot.get_guild(int(guild_id))
                         member = guild.get_member(int(user_id))
+
                         guild_settings = await get_guild_info(guild_id)
                         if guild_settings.verification_role_ID is None:
                             await member.send(f"The verification role has not been set up in {guild.name}.")
                             log.error("The guild does not have a verification role set!")
                             return
                         role = guild.get_role(int(guild_settings.verification_role_ID))
+
                         await member.add_roles(role)
+
                         self.redisClient.delete(key)
                         await member.send(f"You have been verified in {guild.name}")
                         log.info(f"User: {user_id} was verified in {guild_id}  Score: {score}/{minscore}")
