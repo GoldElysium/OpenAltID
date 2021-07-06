@@ -143,6 +143,12 @@ class Verification(commands.Cog):
                         value_split = value.split(':')
                         reason = value_split[1]
 
+                        guild_settings = await get_guild_info(guild_id)
+                        if guild_settings.verification_role_ID is None:
+                            await member.send(f"The verification role has not been set up in {guild.name}.")
+                            log.error("The guild does not have a verification role set!")
+                            return
+
                         guild = self.bot.get_guild(int(guild_id))
                         member = guild.get_member(int(user_id))
                         self.redisClient.delete(key)
