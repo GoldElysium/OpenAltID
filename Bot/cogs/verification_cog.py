@@ -81,19 +81,22 @@ class Verification(commands.Cog):
 
     @commands.command(name="verify")
     async def manual_verify(self, ctx):
-        await ctx.message.add_reaction("✅")
+        # TODO allow servers to disable message auto deleting
         guild_id = ctx.guild.id
-        log.debug(guild_id)
+        guild_settings = await get_guild_info(guild_id)
         try:
-            guild_settings = await get_guild_info(guild_id)
             # Always enable it here
             queued = await initiate_verification(self.redisClient, ctx.author, guild_settings, True)
             if queued is True:
-                bot_msg = await ctx.channel.send("A verification link has been sent!")
+                await ctx.message.add_reaction("✅")
             else:
                 bot_msg = await ctx.channel.send(f"Something went wrong: {queued}")
+                bot_msg.delete(delay=60)
+
+            ctx.message.delete(delay=60)
         except Exception as e:
             bot_msg = await ctx.channel.send(f"An error occured while queuing verification: {e}")
+            bot_msg.delete(delay=60)
             log.error(e)
 
     @tasks.loop(seconds=5.0)
