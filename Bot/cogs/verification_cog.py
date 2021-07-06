@@ -167,6 +167,9 @@ class Verification(commands.Cog):
                         minscore = value_split[2]
 
                         guild_settings = await get_guild_info(guild_id)
+
+                        log.debug(guild_settings)
+
                         if guild_settings.verification_role_ID is None:
                             await member.send(f"The verification role has not been set up in {guild.name}.")
                             log.error("The guild does not have a verification role set!")
