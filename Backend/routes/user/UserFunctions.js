@@ -167,7 +167,7 @@ module.exports.getAccountAges = async (accounts) => {
             process.env.TWITCH_CLIENT_SECRET,
         );
         const twitchClient = new ApiClient({authProvider});
-        twitchPromise = twitchClient.helix.users.getUserById('62730467');
+        twitchPromise = twitchClient.helix.users.getUserById(accounts.get('twitch'));
     }
 
     // Reddit
