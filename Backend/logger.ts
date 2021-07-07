@@ -1,6 +1,6 @@
-const winston = require('winston');
+import winston from 'winston';
 
-module.exports.logger = winston.createLogger({
+export default winston.createLogger({
     level: 'info',
     format: winston.format.json(),
     defaultMeta: { service: 'user-service' },

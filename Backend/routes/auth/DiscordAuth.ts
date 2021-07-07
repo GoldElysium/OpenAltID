@@ -1,12 +1,12 @@
-const express = require('express');
+import express from 'express';
+import passport from 'passport';
 
 const router = express.Router();
-const passport = require('passport');
 
 router.get('/', passport.authenticate('discord'));
 
 router.post('/callback', passport.authenticate('discord'), async (_, res) => {
-    res.json({success: true});
+    res.json({ success: true });
 });
 
-module.exports = router;
+export default router;

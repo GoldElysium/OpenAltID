@@ -1,11 +1,19 @@
-const express = require('express');
-const Redis = require('ioredis');
-const {checkIfAccountsExists} = require("./UserFunctions");
-const { UserModel } = require('../../database/models/UserModel');
-const { verifyUser } = require('./UserFunctions');
-const { getAccountAges } = require('./UserFunctions');
-const { getUserConnectionIDs } = require('./UserFunctions');
-const { logger } = require('../../logger');
+import express from 'express';
+import Redis from 'ioredis';
+import {
+    checkIfAccountsExists, verifyUser, getAccountAges, getUserConnectionIDs, IAccountAge,
+} from './UserFunctions';
+import { UserModel } from '../../database/models/UserModel';
+import logger from '../../logger';
+import { IExtendedProfile } from '../../auth/strategies/Discord';
+
+/* eslint-disable */
+declare global {
+    namespace Express {
+        interface User extends IExtendedProfile {}
+    }
+}
+/* eslint-eanble */
 
 const redis = new Redis({
     port: 6379,
@@ -24,7 +32,6 @@ redis.on('error', (error) => {
 });
 
 const router = express.Router();
-
 
 /**
  * Login route, will just redirect to the internal auth route
@@ -55,9 +62,9 @@ router.get('/dashboard', async (req, res) => {
 
 router.get('/is-logged-in', async (req, res) => {
     if (req.user) {
-        return res.json({logged_in: true});
+        return res.json({ logged_in: true });
     }
-    return res.status(401).json({logged_in: false});
+    return res.status(401).json({ logged_in: false });
 });
 
 router.get('/verify-accounts/:identifier', async (req, res) => {
@@ -73,7 +80,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
     }
 
     try {
-        let redisValue
+        let redisValue;
         try {
             redisValue = await redis.get(`uuid:${req.params.identifier}`);
             if (!redisValue) {
@@ -83,7 +90,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
                 });
             }
         } catch (e) {
-            logger.warning(`Could not retrieve verification info from Redis ${e}`)
+            logger.warning(`Could not retrieve verification info from Redis ${e}`);
             return res.json({
                 verified: false,
                 reason: 'Internal server error.',
@@ -111,8 +118,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             });
         }
 
-
-        let accounts
+        let accounts: Map<string, string>|IAccountAge[];
         try {
             accounts = await getUserConnectionIDs(req.user);
             logger.info("Accounts from Discord:")
@@ -132,6 +138,11 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
                 reason: 'Could not retrieve connections.',
             });
         }
+
+        print()
+        accounts.forEach(account => {
+            logger.error(account);
+        })
 
         let duplicateFound;
         try {
@@ -161,7 +172,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
                     reason: 'Alt account detected.',
                 });
             } catch (e) {
-                logger.error(`Could not set the redis value for alt detectted: ${e}`)
+                logger.error(`Could not set the redis value for alt detectted: ${e}`);
             }
         }
 
@@ -179,18 +190,17 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
                 verified: false,
                 reason: 'Internal server error.',
             });
-
         }
 
         const verificationObj = await verifyUser(accounts, guildId, req.user);
 
-        const verified = verificationObj.verified;
+        const { verified } = verificationObj;
         const docu = new UserModel({
             _id: req.user.id,
             username: req.user.username,
             mfa_enabled:
                 String(req.user.mfa_enabled).toLowerCase() === 'true',
-            premium_type: parseInt(req.user.premium_type, 10),
+            premium_type: parseInt(req.user.premium_type as string, 10),
             verifiedEmail: req.user.verifiedEmail,
             verified,
             avatar: req.user.avatar,
@@ -198,7 +208,7 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         });
 
         await UserModel.findOneAndUpdate(
-            {_id: req.user.id},
+            { _id: req.user.id },
             docu,
             {
                 upsert: true,
@@ -208,21 +218,19 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         const key = `complete:${userId}:${guildId}`;
         let value;
         if (verified === true) {
-            value = `true:${Math.round(verificationObj.score)}:${verificationObj.minscore}`
+            value = `true:${Math.round(verificationObj.score)}:${verificationObj.minscore}`;
             await redis.set(key, value);
             return res.json({
                 verified,
                 reason: 'You should be verified.',
             });
-        } else {
-            value =`false:${Math.round(verificationObj.score)}:${verificationObj.minscore}`
-            await redis.set(key, value);
-            return res.json({
-                verified,
-                reason: 'Failed verification, make sure to connect accounts',
-            });
         }
-
+        value = `false:${Math.round(verificationObj.score)}:${verificationObj.minscore}`;
+        await redis.set(key, value);
+        return res.json({
+            verified,
+            reason: 'Failed verification, make sure to connect accounts',
+        });
     } catch (e) {
         logger.error('Main try');
         logger.error(e);
@@ -233,4 +241,4 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

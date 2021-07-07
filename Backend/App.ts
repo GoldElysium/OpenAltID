@@ -1,26 +1,27 @@
-require('dotenv').config();
+import 'dotenv/config';
 
-const express = require('express');
-const session = require('express-session');
-const passport = require('passport');
-const bodyParser = require('body-parser');
-const morgan = require('morgan')('tiny');
-const cors = require('cors');
-const connectRedis = require('connect-redis');
-const redis = require('redis');
-const helmet = require('helmet');
-const AuthRouter = require('./routes/auth/AuthRouter');
-const UserRouter = require('./routes/user/UserLogin');
-const { logger } = require('./logger');
+import express from 'express';
+import session from 'express-session';
+import passport from 'passport';
+import morgan from 'morgan';
+import cors from 'cors';
+import connectRedis from 'connect-redis';
+import redis from 'redis';
+import helmet from 'helmet';
+import AuthRouter from './routes/auth/AuthRouter';
+import UserRouter from './routes/user/UserLogin';
+import logger from './logger';
+import MongoDb from './database/Mongo';
 
-require('./database/Mongo')();
+const morganTiny = morgan('tiny');
+MongoDb();
 
 // Create the express app
 const app = express();
 
 app.use(helmet());
-app.use(morgan);
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(morganTiny);
+app.use(express.urlencoded({ extended: true }));
 app.use(
     cors({
         origin: ['http://localhost:8000', 'https://verify.holoen.fans'],
@@ -35,10 +36,10 @@ const redisClient = redis.createClient({
     host: 'Redis',
     port: 6379,
 });
-redisClient.on('error', (err) => {
+redisClient.on('error', (err: Error) => {
     logger.error('Could not connect to Redis for session!');
-    logger.error(err)
-    process.exit(0)
+    logger.error(err);
+    process.exit(0);
 });
 redisClient.on('connect', () => {
     logger.info('Connected to Redis for session!');
@@ -46,11 +47,12 @@ redisClient.on('connect', () => {
 
 app.use(
     session({
-        store: new RedisStore({client: redisClient}),
-        secret: process.env.SECRET,
+        store: new RedisStore({ client: redisClient }),
+        secret: process.env.SECRET as string,
         resave: true,
         saveUninitialized: true,
         cookie: {
+            // eslint-disable-next-line max-len
             // This must be set to true for production, but it needs SSL, which can't be done from local.
             // See: https://stackoverflow.com/questions/11277779/passportjs-deserializeuser-never-called
             secure: false,
@@ -69,16 +71,12 @@ require('./auth/strategies/Discord').DiscordAuth(passport);
 app.use('/auth', AuthRouter);
 app.use('/user', UserRouter);
 
-app.get('/', async (req, res) => {
+app.get('/', async (_: express.Request, res: express.Response) => {
     res.send('The server is running! yay.');
 });
 
-app.listen(process.env.PORT || 8080, (err) => {
-    if (err) {
-        logger.error('An error occurred while starting the server.');
-    } else {
-        logger.info(`Listening on port: ${process.env.PORT || 8080}`);
-    }
+app.listen(process.env.PORT || 8080, () => {
+    logger.info(`Listening on port: ${process.env.PORT || 8080}`);
 });
 
-module.exports = app;
+export default app;

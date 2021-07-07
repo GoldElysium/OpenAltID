@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"outDir": "./dist",
+		"resolveJsonModule": true,
+		"importHelpers": true,
+		"moduleResolution": "node",
+		"strict": true
+	},
+	"include": [
+		"./**/*"
+	],
+	"extends": "@tsconfig/node14/tsconfig.json"
+}

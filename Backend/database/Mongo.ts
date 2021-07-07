@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
-const { logger } = require('../logger');
+import mongoose from 'mongoose';
+import logger from '../logger';
 
-module.exports = () => {
-    mongoose.connect(process.env.MONGO_DB_URI, {
+export default function () {
+    mongoose.connect(process.env.MONGO_DB_URI as string, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     });
@@ -14,4 +14,4 @@ module.exports = () => {
     });
 
     return db;
-};
+}
