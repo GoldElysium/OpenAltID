@@ -97,7 +97,7 @@ module.exports.getUserConnectionIDs = async (sessionUser) => {
     );
     logger.info(resp.status);
     logger.info(resp.statusText);
-    logger.info(resp.data);
+    logger.info(JSON.stringify(resp.data, null, 4));
 
     logger.info('getting accounts');
     const accounts = new Map();
