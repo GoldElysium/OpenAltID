@@ -48,7 +48,7 @@ class Management(commands.Cog):
             error = await set_guild_log_channel(ctx.guild.id, str(log_channel.id))
 
         if error is None:
-            await ctx.send(f"Verification role set to `{log_channel.name}`")
+            await ctx.send(f"Logs channel set to `{log_channel.name}`")
         else:
             log.error(f"Error while adding the role [{log_channel.id}] in guild [{ctx.guild}]. {error}")
             await ctx.send(f"Internal error while setting the role.")
@@ -65,7 +65,7 @@ class Management(commands.Cog):
         error = await set_guild_mod_role(ctx.guild.id, str(role.id))
 
         if error is None:
-            await ctx.send(f"Verification role set to `{role.name}`")
+            await ctx.send(f"Mod role set to `{role.name}`")
         else:
             log.error(f"Error while adding the role [{role.id}] in guild [{ctx.guild}]. {error}")
             await ctx.send(f"Internal error while setting the role.")
@@ -89,7 +89,7 @@ class Management(commands.Cog):
         error = await set_guild_enabled(ctx.guild.id, enabled)
 
         if error is None:
-            await ctx.send(f"Set enabled to: {enabled}`")
+            await ctx.send(f"Set enabled to: {enabled}")
         else:
             log.error(f"{error}")
             await ctx.send(f"Internal error while setting the age.")
@@ -101,7 +101,7 @@ class Management(commands.Cog):
         error = await set_verify_on_screening(ctx.guild.id, enabled)
 
         if error is None:
-            await ctx.send(f"Set enabled to: {enabled}")
+            await ctx.send(f"Set verify on screening to: {enabled}")
         else:
             log.error(f"{error}")
             await ctx.send(f"Internal error while setting the age.")

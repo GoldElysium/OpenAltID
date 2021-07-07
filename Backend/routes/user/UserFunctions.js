@@ -107,7 +107,13 @@ module.exports.getUserConnectionIDs = async (sessionUser) => {
             supportedAccountTypes.indexOf(el.type) !== -1
             && el.verified === true
         ) {
-            accounts.set(el.type, el.id);
+            if (el.type === "reddit") {
+                // Reddit does not use the ID it uses the name
+                accounts.set(el.type, el.name);
+            } else {
+                accounts.set(el.type, el.id);
+            }
+
         }
     });
     logger.info('Got accounts');

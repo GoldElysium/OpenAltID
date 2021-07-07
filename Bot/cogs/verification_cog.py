@@ -27,7 +27,7 @@ async def initiate_verification(redisClient, member, guild_settings, enabled):
         role = member.guild.get_role(int(guild_settings.verification_role_ID))
         try:
             await member.add_roles(role)
-            await member.send()
+            await member.send(f"You have been verified in {member.guild.name}")
         except Exception as err:
             log.error(err)
             await member.send(
