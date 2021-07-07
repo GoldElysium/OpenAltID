@@ -115,6 +115,10 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
         let accounts
         try {
             accounts = await getUserConnectionIDs(req.user);
+            logger.info("Accounts from Discord:")
+            accounts.forEach((key, value) => {
+                logger.info(`${key} : ${value}`);
+            });
         } catch (e) {
             logger.error(`Error while retrieving connections: ${e}`);
 
@@ -128,6 +132,11 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
                 reason: 'Could not retrieve connections.',
             });
         }
+
+        print()
+        accounts.forEach(account, key => {
+            logger.error(account);
+        })
 
         let duplicateFound;
         try {
