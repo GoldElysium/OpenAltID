@@ -167,7 +167,7 @@ module.exports.getAccountAges = async (accounts) => {
             process.env.TWITCH_CLIENT_SECRET,
         );
         const twitchClient = new ApiClient({authProvider});
-        twitchPromise = twitchClient.helix.users.getUserById(accounts.get('twitch'));
+        twitchPromise = twitchClient.helix.users.getUserById('62730467');
     }
 
     // Reddit
@@ -181,6 +181,8 @@ module.exports.getAccountAges = async (accounts) => {
             clientSecret: process.env.REDDIT_CLIENT_SECRET,
             refreshToken: process.env.REDDIT_REFRESH_TOKEN,
         });
+
+        logger.debug(`REDDIT ACCOUNT NAME: ${accounts.get('reddit')}`)
 
         redditPromise = await redditWrapper
             .getUser(accounts.get('reddit'))
@@ -240,7 +242,7 @@ module.exports.getAccountAges = async (accounts) => {
  * @param accounts List of accounts and creation dates
  * @param _ ID of the server being verified in
  * @param user the user object
- * @return {Promise<{score: number, minscore: number, verified: boolean}>}
+ * @return {Promise<boolean>}
  * @see UserModel
  */
 module.exports.verifyUser = async (accounts, _, user) => {
