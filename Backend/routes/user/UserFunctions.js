@@ -169,20 +169,20 @@ module.exports.getAccountAges = async (accounts) => {
         const twitchClient = new ApiClient({authProvider});
         twitchPromise = twitchClient.helix.users.getUserById('62730467');
     }
+    logger.debug(`REDDIT ACCOUNT NAME: ${accounts.get('reddit')}`)
 
     // Reddit
     let redditPromise = new Promise((resolve) => {
         resolve(null);
     });
     if (accounts.has('reddit')) {
+        logger.debug(`REDDIT ACCOUNT NAME: ${accounts.get('reddit')}`)
         const redditWrapper = new RedditWrapper({
             userAgent: 'OpenAD (v1)',
             clientId: process.env.REDDIT_CLIENT_ID,
             clientSecret: process.env.REDDIT_CLIENT_SECRET,
             refreshToken: process.env.REDDIT_REFRESH_TOKEN,
         });
-
-        logger.debug(`REDDIT ACCOUNT NAME: ${accounts.get('reddit')}`)
 
         redditPromise = await redditWrapper
             .getUser(accounts.get('reddit'))
