@@ -252,6 +252,8 @@ module.exports.getAccountAges = async (accounts) => {
  * @see UserModel
  */
 module.exports.verifyUser = async (accounts, _, user) => {
+    logger.info("Starting verification")
+
     // Todo get the min days and min score from the database
     let score = 0;
     const zeroPoint = 180;

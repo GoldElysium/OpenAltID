@@ -12,6 +12,7 @@ const helmet = require('helmet');
 const AuthRouter = require('./routes/auth/AuthRouter');
 const UserRouter = require('./routes/user/UserLogin');
 const { logger } = require('./logger');
+
 require('./database/Mongo')();
 
 // Create the express app

@@ -133,11 +133,6 @@ router.get('/verify-accounts/:identifier', async (req, res) => {
             });
         }
 
-        print()
-        accounts.forEach(account, key => {
-            logger.error(account);
-        })
-
         let duplicateFound;
         try {
             duplicateFound = await checkIfAccountsExists(req, accounts);
