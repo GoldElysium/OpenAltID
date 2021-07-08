@@ -12,5 +12,9 @@ The Backend needs some type of mongodb to work, either self hosted or on MongoDB
 The bot will also be run as a docker container once it is made.
 
 For the most part the procedure for running the whole backend is using `git pull` `docker-compose pull` and `docker-compose up --build`
+The Docker images are availiable from:
+`omneex/api-openaltid`
+and 
+`omneex/bot-openaltid`
 ___
 ## HUGE THANKS TO GoldElysium 
