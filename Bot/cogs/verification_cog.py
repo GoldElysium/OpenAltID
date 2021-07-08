@@ -28,11 +28,12 @@ async def initiate_verification(redisClient, member, guild_settings, enabled):
         try:
             await member.add_roles(role)
             await member.send(f"You have been verified in {member.guild.name}")
+            return True
         except Exception as err:
             log.error(err)
             await member.send(
                 f"An error occured while giving you the verification role, please contact server admins for {member.guild.name}")
-        return False
+            return err
 
     retry = True
     unique_ID = secrets.token_urlsafe(8)
