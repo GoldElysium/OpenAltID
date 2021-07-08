@@ -29,11 +29,19 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Extract metadata (tags, labels) for Docker
-        id: meta
+        id: meta1
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
           images: |
-            my-docker-hub-namespace/my-docker-hub-repository
+            omneex/api-openaltid
+            ghcr.io/${{ github.repository }}
+            
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta2
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: |
+            omneex/bot-openaltid
             ghcr.io/${{ github.repository }}
       
       - name: Build and push Backend Image
@@ -41,13 +49,13 @@ jobs:
         with:
           context: ./Backend
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta1.outputs.tags }}
+          labels: ${{ steps.meta1.outputs.labels }}
           
       - name: Build and push Bot Image
         uses: docker/build-push-action@v2.6.1
         with:
           context: ./Bot
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta2.outputs.tags }}
+          labels: ${{ steps.meta2.outputs.labels }}
