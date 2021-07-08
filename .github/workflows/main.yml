@@ -22,20 +22,12 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       
-      - name: Log in to the Container registry
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      
       - name: Extract metadata (tags, labels) for Docker
         id: meta1
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
           images: |
             omneex/api-openaltid
-            ghcr.io/api-${{ github.repository }}
             
       - name: Extract metadata (tags, labels) for Docker
         id: meta2
@@ -43,7 +35,6 @@ jobs:
         with:
           images: |
             omneex/bot-openaltid
-            ghcr.io/bot-${{ github.repository }}
       
       - name: Build and push Backend Image
         uses: docker/build-push-action@v2.6.1
