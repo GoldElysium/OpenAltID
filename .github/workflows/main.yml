@@ -35,7 +35,7 @@ jobs:
         with:
           images: |
             omneex/api-openaltid
-            ghcr.io/${api-{ github.repository }}
+            ghcr.io/api-${{ github.repository }}
             
       - name: Extract metadata (tags, labels) for Docker
         id: meta2
@@ -43,7 +43,7 @@ jobs:
         with:
           images: |
             omneex/bot-openaltid
-            ghcr.io/${bot-{ github.repository }}
+            ghcr.io/bot-${{ github.repository }}
       
       - name: Build and push Backend Image
         uses: docker/build-push-action@v2.6.1
